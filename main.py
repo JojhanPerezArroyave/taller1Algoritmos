@@ -90,16 +90,55 @@ table_data = []
 #for key, values in prob.items():
 #    table_data.append([key] + values)
 
-print(probabilidades(frecuenciaEstados(canales, estadosExistentes(canales)), frecuenciaEstadosSiguientes(canales, estadosExistentes(canales))))
+#print(probabilidades(frecuenciaEstados(canales, estadosExistentes(canales)), frecuenciaEstadosSiguientes(canales, estadosExistentes(canales))))
 
 #tabla = tb.tabulate(probabilidades(frecuenciaEstados(canales, estadosExistentes(canales)), frecuenciaEstadosSiguientes(canales, estadosExistentes(canales))), tablefmt='orgtbl', headers='keys')
 
 
 tableEstadoCanalF = generateTable1(probabilidades(frecuenciaEstados(canales, estadosExistentes(canales)), frecuenciaEstadosSiguientes(canales, estadosExistentes(canales))), ["1"]*len(canales.values()))
-print(tableEstadoCanalF)
+#print(tableEstadoCanalF)
 
 tableEstadoEstadoF = generateTable1(probabilidades(frecuenciaEstados(canales, estadosExistentes(canales)), probabilidadesEstadosSiguientes(canales, estadosExistentes(canales))), estadosExistentes(canales))
-print(tableEstadoEstadoF)
+#print(tableEstadoEstadoF)
+
+def probabilidadesEstadosAnteriores(canales: dict, estados: list) -> dict:
+    num_canales = len(canales)
+    probabilidades = {estado: [0] * len(estados) for estado in estados}
+    num_tiempos = len(list(canales.values())[0])
+
+    for estado in estados:
+        for i in range(num_tiempos - 1, 0, -1):
+            if estado == "".join(canales[canal][i] for canal in canales):
+                for j, estadoSiguiente in enumerate(estados):
+                    if estadoSiguiente == "".join(canales[canal][i - 1] for canal in canales):
+                        probabilidades[estado][j] += 1
+
+    return probabilidades
+
+#print(probabilidadesEstadosAnteriores(canales, estadosExistentes(canales)))
+
+def frecuenciaEstadosAnteriores(canales: dict, estados: list) -> dict:
+    num_canales = len(canales)
+    frecuencias = {estado: [0] * num_canales for estado in estados}
+    num_tiempos = len(list(canales.values())[0])
+
+    for estado in estados:
+        for i in range(num_tiempos - 1, 0, -1):
+            if estado == "".join(canales[canal][i] for canal in canales):
+                for j, canal in enumerate(canales):
+                    if canales[canal][i - 1] == "1":
+                        frecuencias[estado][j] += 1
+
+    return frecuencias
+
+tableEstadoCanalP = generateTable1(probabilidades(frecuenciaEstados(canales, estadosExistentes(canales)), frecuenciaEstadosAnteriores(canales, estadosExistentes(canales))), ["1"]*len(canales.values()))
+print(tableEstadoCanalP)
+
+tableEstadoEstadoP = generateTable1(probabilidades(frecuenciaEstados(canales, estadosExistentes(canales)), probabilidadesEstadosAnteriores(canales, estadosExistentes(canales))), estadosExistentes(canales))
+print(tableEstadoEstadoP)
+
+
+
 
 
 
