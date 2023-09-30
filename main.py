@@ -1,12 +1,9 @@
 import numpy as np
 import tabulate as tb
+import json
 
-canales = {
-    "canalA" : ["0", "1", "1", "0", "1", "1", "0", "0", "0", "1", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "1", "0", "0", "0", "1"],
-    "canalB" : ["0", "0", "0", "1", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "1", "0", "1", "1", "0", "1", "1", "0", "1", "1", "1", "1", "0", "0", "0"],
-    "canalC" : ["0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "1", "0", "1", "1", "0", "1", "1", "1", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0", "1", "0"],
-}
-
+with open('canales.json', 'r') as archivo_json:
+    canales = json.load(archivo_json)
 
 """Devuelve una lista de los estados existentes en los canales de comunicación. Los estados se definen como los valores que toman los canales de comunicación en un instante de tiempo determinado.
 Los tiempos están definidos por cada posición de cada canal de comunicación. Por ejemplo, el estado 1 es 000 y el estado 2 es 101."""
@@ -62,7 +59,6 @@ def probabilidades(frecuenciaEstados: dict, frecuenciaEstadosSiguientes: dict) -
 
 """ Método que devuelve un diccionario en donde la clave es cada estado de la lista de estados y su valor es un arreglo que tiene tantas posiciones como estados existentes, el valor de la posicion 0 del arreglo será las veces que despues del primer estado esta el primer estado, la posición 1 es las veces que despues del primer estado esta el segundo estado  """
 def probabilidadesEstadosSiguientes(canales: dict, estados: list) -> dict:
-    num_canales = len(canales)
     probabilidades = {estado: [0] * len(estados) for estado in estados}
     num_tiempos = len(list(canales.values())[0])
 
@@ -74,7 +70,6 @@ def probabilidadesEstadosSiguientes(canales: dict, estados: list) -> dict:
                         probabilidades[estado][j] += 1
 
     return probabilidades
-"""Imprimir el metodo frecuenciaEstadosSiguientes"""
 
 
 def generateTable1(data: dict, headers: list) -> str:
@@ -83,26 +78,8 @@ def generateTable1(data: dict, headers: list) -> str:
         table_data.append([key] + values)
     return tb.tabulate(table_data, headers, tablefmt="fancy_grid")
 
-table_data = []
-
-#prob = probabilidades(frecuenciaEstados(canales, estadosExistentes(canales)), frecuenciaEstadosSiguientes(canales, estadosExistentes(canales)))
-#headers = ["1"]*len(canales.values())
-#for key, values in prob.items():
-#    table_data.append([key] + values)
-
-#print(probabilidades(frecuenciaEstados(canales, estadosExistentes(canales)), frecuenciaEstadosSiguientes(canales, estadosExistentes(canales))))
-
-#tabla = tb.tabulate(probabilidades(frecuenciaEstados(canales, estadosExistentes(canales)), frecuenciaEstadosSiguientes(canales, estadosExistentes(canales))), tablefmt='orgtbl', headers='keys')
-
-
-tableEstadoCanalF = generateTable1(probabilidades(frecuenciaEstados(canales, estadosExistentes(canales)), frecuenciaEstadosSiguientes(canales, estadosExistentes(canales))), ["1"]*len(canales.values()))
-#print(tableEstadoCanalF)
-
-tableEstadoEstadoF = generateTable1(probabilidades(frecuenciaEstados(canales, estadosExistentes(canales)), probabilidadesEstadosSiguientes(canales, estadosExistentes(canales))), estadosExistentes(canales))
-#print(tableEstadoEstadoF)
 
 def probabilidadesEstadosAnteriores(canales: dict, estados: list) -> dict:
-    num_canales = len(canales)
     probabilidades = {estado: [0] * len(estados) for estado in estados}
     num_tiempos = len(list(canales.values())[0])
 
@@ -114,8 +91,6 @@ def probabilidadesEstadosAnteriores(canales: dict, estados: list) -> dict:
                         probabilidades[estado][j] += 1
 
     return probabilidades
-
-#print(probabilidadesEstadosAnteriores(canales, estadosExistentes(canales)))
 
 def frecuenciaEstadosAnteriores(canales: dict, estados: list) -> dict:
     num_canales = len(canales)
@@ -131,10 +106,21 @@ def frecuenciaEstadosAnteriores(canales: dict, estados: list) -> dict:
 
     return frecuencias
 
-tableEstadoCanalP = generateTable1(probabilidades(frecuenciaEstados(canales, estadosExistentes(canales)), frecuenciaEstadosAnteriores(canales, estadosExistentes(canales))), ["1"]*len(canales.values()))
+#Impresión de las tablas
+
+varFrecuenciaEstados = frecuenciaEstados(canales, estadosExistentes(canales));
+varEstadosExistentes = estadosExistentes(canales)
+
+tableEstadoCanalF = generateTable1(probabilidades(varFrecuenciaEstados, frecuenciaEstadosSiguientes(canales, varEstadosExistentes)), ["1"]*len(canales.values()))
+print(tableEstadoCanalF)
+
+tableEstadoEstadoF = generateTable1(probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes)), varEstadosExistentes)
+print(tableEstadoEstadoF)
+
+tableEstadoCanalP = generateTable1(probabilidades(varFrecuenciaEstados, frecuenciaEstadosAnteriores(canales, varEstadosExistentes)), ["1"]*len(canales.values()))
 print(tableEstadoCanalP)
 
-tableEstadoEstadoP = generateTable1(probabilidades(frecuenciaEstados(canales, estadosExistentes(canales)), probabilidadesEstadosAnteriores(canales, estadosExistentes(canales))), estadosExistentes(canales))
+tableEstadoEstadoP = generateTable1(probabilidades(varFrecuenciaEstados, probabilidadesEstadosAnteriores(canales, varEstadosExistentes)), varEstadosExistentes)
 print(tableEstadoEstadoP)
 
 
