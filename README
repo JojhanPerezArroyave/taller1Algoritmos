@@ -1,0 +1,51 @@
+# Proyecto de Análisis y diseño de algoritmos
+
+## Descripción
+
+El objetivo principal de este proyecto es analizar los estados que toman los canales de comunicación en momentos específicos y calcular estadísticas relacionadas con estos estados. Las funciones principales del proyecto incluyen:
+
+- `estadosExistentes(canales: dict)`: Devuelve una lista de los estados existentes en los canales de comunicación.
+
+- `frecuenciaEstados(canales: dict, estados: list)`: Calcula cuántas veces se encuentra cada estado en los canales de comunicación.
+
+- `frecuenciaEstadosSiguientes(canales: dict, estados: list)`: Calcula cuántas veces aparece cada estado seguido de un 1 en cada canal.
+
+- `probabilidades(frecuenciaEstados: dict, frecuenciaEstadosSiguientes: dict)`: Calcula las probabilidades de transición de un estado a otro en función de las frecuencias anteriores.
+
+- `probabilidadesEstadosSiguientes(canales: dict, estados: list)`: Calcula las probabilidades de transición entre estados en los canales de comunicación.
+
+- `probabilidadesEstadosAnteriores(canales: dict, estados: list)`: Calcula las probabilidades de transición entre estados anteriores en los canales de comunicación.
+
+## Uso
+
+Para utilizar este proyecto, sigue los siguientes pasos:
+
+1. Asegúrate de tener Python instalado en tu sistema.
+
+2. Instala las bibliotecas necesarias ejecutando `pip install numpy tabulate`.
+
+3. Guarda tus datos de canales de comunicación en un archivo JSON llamado `canales.json` en el mismo directorio que este proyecto.
+
+4. Utiliza las funciones proporcionadas para realizar análisis y generar tablas con los resultados.
+
+## Ejemplos
+
+Aquí hay ejemplos de cómo utilizar algunas de las funciones principales:
+
+```python
+# Obtener estados existentes en los canales
+estados = estadosExistentes(canales)
+
+# Calcular la frecuencia de estados
+frecuencia = frecuenciaEstados(canales, estados)
+
+# Calcular las probabilidades de transición entre estados y canales
+probabilidades_estado_canal = probabilidades(frecuencia, frecuenciaEstadosSiguientes(canales, estados))
+probabilidades_estado_estado = probabilidades(frecuencia, probabilidadesEstadosSiguientes(canales, estados))
+
+# Generar tablas con los resultados
+print("Probabilidades de transición entre estados y canales:")
+print(generateTable1(probabilidades_estado_canal, [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]]))
+
+print("Probabilidades de transición entre estados:")
+print(generateTable1(probabilidades_estado_estado, estados))
