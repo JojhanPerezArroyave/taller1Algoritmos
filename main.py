@@ -1,6 +1,7 @@
 import numpy as np
 import tabulate as tb
 import json
+import string
 
 with open('canales.json', 'r') as archivo_json:
     canales = json.load(archivo_json)
@@ -111,13 +112,13 @@ def frecuenciaEstadosAnteriores(canales: dict, estados: list) -> dict:
 varFrecuenciaEstados = frecuenciaEstados(canales, estadosExistentes(canales));
 varEstadosExistentes = estadosExistentes(canales)
 
-tableEstadoCanalF = generateTable1(probabilidades(varFrecuenciaEstados, frecuenciaEstadosSiguientes(canales, varEstadosExistentes)), ["1"]*len(canales.values()))
+tableEstadoCanalF = generateTable1(probabilidades(varFrecuenciaEstados, frecuenciaEstadosSiguientes(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
 print(tableEstadoCanalF)
 
 tableEstadoEstadoF = generateTable1(probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes)), varEstadosExistentes)
 print(tableEstadoEstadoF)
 
-tableEstadoCanalP = generateTable1(probabilidades(varFrecuenciaEstados, frecuenciaEstadosAnteriores(canales, varEstadosExistentes)), ["1"]*len(canales.values()))
+tableEstadoCanalP = generateTable1(probabilidades(varFrecuenciaEstados, frecuenciaEstadosAnteriores(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
 print(tableEstadoCanalP)
 
 tableEstadoEstadoP = generateTable1(probabilidades(varFrecuenciaEstados, probabilidadesEstadosAnteriores(canales, varEstadosExistentes)), varEstadosExistentes)
