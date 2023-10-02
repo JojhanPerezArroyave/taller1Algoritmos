@@ -24,7 +24,7 @@ Para utilizar este proyecto, sigue los siguientes pasos:
 
 2. Instala las bibliotecas necesarias ejecutando `pip install numpy tabulate`.
 
-3. Guarda tus datos de canales de comunicación en un archivo JSON llamado `canales.json` en el mismo directorio que este proyecto.
+3. Guarda tus datos de canales de comunicación en un archivo TXT llamado `canales.txt` en el mismo directorio que este proyecto.
 
 4. Utiliza las funciones proporcionadas para realizar análisis y generar tablas con los resultados.
 
