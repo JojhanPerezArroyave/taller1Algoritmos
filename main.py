@@ -3,8 +3,13 @@ import tabulate as tb
 import json
 import string
 
-with open('canales.json', 'r') as archivo_json:
-    canales = json.load(archivo_json)
+canales = {}
+with open('canales.txt', 'r') as archivo_txt:
+    for linea in archivo_txt:
+        partes = linea.strip().split()
+        if partes:
+            canal, valores = partes[0], partes[1:]
+            canales[canal] = valores
 
 """Devuelve una lista de los estados existentes en los canales de comunicación. Los estados se definen como los valores que toman los canales de comunicación en un instante de tiempo determinado.
 Los tiempos están definidos por cada posición de cada canal de comunicación. Por ejemplo, el estado 1 es 000 y el estado 2 es 101."""
