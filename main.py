@@ -1,5 +1,5 @@
 import tabulate as tb
-import string
+import numpy as np
 
 canales = {}
 with open('canales.txt', 'r') as archivo_txt:
@@ -123,15 +123,35 @@ varEstadosExistentes = estadosExistentes(canales)
 # print(tableEstadoCanalF)
 # print(probabilidades(varFrecuenciaEstados, frecuenciaEstadosSiguientes(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
 
-tableEstadoEstadoF = generateTable1(probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes)), varEstadosExistentes)
-print(tableEstadoEstadoF)
-print(probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes)), varEstadosExistentes)
+# tableEstadoEstadoF = generateTable1(probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes)), varEstadosExistentes)
+# print(tableEstadoEstadoF)
+# print(probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes)), varEstadosExistentes)
 
+diccionarioProb = probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes))
+print(diccionarioProb)
 # tableEstadoCanalP = generateTable1(probabilidades(varFrecuenciaEstados, frecuenciaEstadosAnteriores(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
 # print(tableEstadoCanalP)
 
 # tableEstadoEstadoP = generateTable1(probabilidades(varFrecuenciaEstados, probabilidadesEstadosAnteriores(canales, varEstadosExistentes)), varEstadosExistentes)
 # print(tableEstadoEstadoP) 
+
+
+"""Dado el diccionario de probabilidades de estados siguientes, retorna las probabilidades de un estado dado"""
+def distribucionEstado(probabilidades: dict, estado: str) -> list:
+    return probabilidades[estado]
+
+# print(distribucionEstado(diccionarioProb, '000'))
+
+
+
+
+
+
+
+
+
+
+
 
 
 
