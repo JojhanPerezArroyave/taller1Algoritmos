@@ -1,6 +1,4 @@
-import numpy as np
 import tabulate as tb
-import json
 import string
 
 canales = {}
@@ -16,12 +14,16 @@ Los tiempos están definidos por cada posición de cada canal de comunicación. 
 def estadosExistentes(canales: dict) -> list:
     estados = set()
     num_tiempos = len(list(canales.values())[0]) 
-    
+    orden_definido = ['000', '100', '010', '110', '001', '101', '011', '111']  # Define el orden según el comentario
+
     for i in range(num_tiempos):
         estado = "".join(canales[canal][i] for canal in canales)
         estados.add(estado)
-    
-    return list(estados)
+
+    estados_ordenados = [estado for estado in orden_definido if estado in estados]
+
+    return estados_ordenados
+
 
 
 """Devuelve un diccionario el cual por cada estado existente en la lista de estados, devuelve cuántas veces se encuentra este en los canales de comunicación."""
@@ -117,17 +119,19 @@ def frecuenciaEstadosAnteriores(canales: dict, estados: list) -> dict:
 varFrecuenciaEstados = frecuenciaEstados(canales, estadosExistentes(canales));
 varEstadosExistentes = estadosExistentes(canales)
 
-tableEstadoCanalF = generateTable1(probabilidades(varFrecuenciaEstados, frecuenciaEstadosSiguientes(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
-print(tableEstadoCanalF)
+# tableEstadoCanalF = generateTable1(probabilidades(varFrecuenciaEstados, frecuenciaEstadosSiguientes(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
+# print(tableEstadoCanalF)
+# print(probabilidades(varFrecuenciaEstados, frecuenciaEstadosSiguientes(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
 
 tableEstadoEstadoF = generateTable1(probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes)), varEstadosExistentes)
 print(tableEstadoEstadoF)
+print(probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes)), varEstadosExistentes)
 
-tableEstadoCanalP = generateTable1(probabilidades(varFrecuenciaEstados, frecuenciaEstadosAnteriores(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
-print(tableEstadoCanalP)
+# tableEstadoCanalP = generateTable1(probabilidades(varFrecuenciaEstados, frecuenciaEstadosAnteriores(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
+# print(tableEstadoCanalP)
 
-tableEstadoEstadoP = generateTable1(probabilidades(varFrecuenciaEstados, probabilidadesEstadosAnteriores(canales, varEstadosExistentes)), varEstadosExistentes)
-print(tableEstadoEstadoP)
+# tableEstadoEstadoP = generateTable1(probabilidades(varFrecuenciaEstados, probabilidadesEstadosAnteriores(canales, varEstadosExistentes)), varEstadosExistentes)
+# print(tableEstadoEstadoP) 
 
 
 
