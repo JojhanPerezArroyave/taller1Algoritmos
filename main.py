@@ -1,5 +1,6 @@
 import tabulate as tb
 import numpy as np
+import string
 
 canales = {}
 with open('canales.txt', 'r') as archivo_txt:
@@ -121,14 +122,14 @@ varEstadosExistentes = estadosExistentes(canales)
 
 # tableEstadoCanalF = generateTable1(probabilidades(varFrecuenciaEstados, frecuenciaEstadosSiguientes(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
 # print(tableEstadoCanalF)
-# print(probabilidades(varFrecuenciaEstados, frecuenciaEstadosSiguientes(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
+#print(probabilidades(varFrecuenciaEstados, frecuenciaEstadosSiguientes(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
 
 # tableEstadoEstadoF = generateTable1(probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes)), varEstadosExistentes)
 # print(tableEstadoEstadoF)
 # print(probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes)), varEstadosExistentes)
 
 diccionarioProb = probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes))
-print(diccionarioProb)
+# print(diccionarioProb)
 # tableEstadoCanalP = generateTable1(probabilidades(varFrecuenciaEstados, frecuenciaEstadosAnteriores(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
 # print(tableEstadoCanalP)
 
@@ -141,6 +142,61 @@ def distribucionEstado(probabilidades: dict, estado: str) -> list:
     return probabilidades[estado]
 
 # print(distribucionEstado(diccionarioProb, '000'))
+
+""""Dado el diccionaro que tiene las probabilidades del canal siguiente dado un estado actual,
+usa numpy para generar una distribución de probabilidades de uno de los canales dado un estado actual"""
+def distribucionCanal(probabilidades: dict, estado: str, canal: str) -> list:
+    return np.random.choice([0, 1], p=[1 - probabilidades[estado][int(canal)], probabilidades[estado][int(canal)]])
+
+#print(distribucionCanal(diccionarioProb, '000', '0'))
+
+"""Dado el diccionario de probabilidades de estados siguientes, necesito marginalizar un canal del estado siguiente, es decir, sumar las probabilidades
+de los estados siguientes que queden iguales dado que se quite uno de sus canales, por ejemplo, si el estado actual es 000 y marginalizo el canal 0 de los estados siguientes,
+ entonces quedaría asi: 000: [0.0,0.0,0.5,0.5], debido a que sumo los estados siguientes 000 y 100, los 010 y 110 quedan iguales, y los 001 y 101 quedan iguales.
+ o por ejemplo, si el estado actual es 000 y marginalizo el canal 1 de los estados siguientes,
+ entonces quedaría asi: 000: [0.0,0.0,0.5,0.5], debido a que sumo los estados siguientes 000 y 010, los 100 y 110 quedan iguales, y los 111 y 101 y el 001 y 011 quedan iguales."""
+def marginalizarCanal(probabilidades: dict, canal: str) -> dict:
+    for estado in probabilidades:
+        if canal == '0':
+            probabilidades[estado] = [probabilidades[estado][0] + probabilidades[estado][1],
+                                      probabilidades[estado][2] + probabilidades[estado][3],
+                                      probabilidades[estado][4] + probabilidades[estado][5] + probabilidades[estado][6] + probabilidades[estado][7]]
+            probabilidades[estado] = probabilidades[estado][:3]
+        elif canal == '1':
+            probabilidades[estado] = [probabilidades[estado][0] + probabilidades[estado][2],
+                                      probabilidades[estado][1] + probabilidades[estado][3],
+                                      probabilidades[estado][4] + probabilidades[estado][6],
+                                      probabilidades[estado][5] + probabilidades[estado][7]]
+            probabilidades[estado] = probabilidades[estado][:2] + probabilidades[estado][2:4]
+        elif canal == '2':
+            probabilidades[estado] = [probabilidades[estado][0] + probabilidades[estado][1],
+                                      probabilidades[estado][2] + probabilidades[estado][3],
+                                      probabilidades[estado][4] + probabilidades[estado][5],
+                                      probabilidades[estado][6] + probabilidades[estado][7]]
+            probabilidades[estado] = probabilidades[estado][:2] + probabilidades[estado][2:4]
+    return probabilidades
+
+# Ejemplo de uso
+diccionarioProb = {'000': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]}
+print(marginalizarCanal(diccionarioProb, '1'))
+
+
+print(marginalizarCanal(diccionarioProb, '0'))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
