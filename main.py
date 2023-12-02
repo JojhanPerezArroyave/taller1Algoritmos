@@ -172,22 +172,23 @@ def print_matrix(matrix):
 
 def marginalizar_filas(probabilidades: dict, canal: str) -> dict:
     res = dict()
+    
     for estado in probabilidades:
         canalNuevo = estado[:canal]+estado[canal+1:]
-        res[canalNuevo] = [0] * len(probabilidades[estado])
+        res[canalNuevo] = [0] * (len(probabilidades[estado]) // 2)
     for estado in probabilidades:
         canalNuevo = estado[:canal]+estado[canal+1:]
-        res[canalNuevo] = [res[canalNuevo][i] + probabilidades[estado][i] for i in range(len(probabilidades[estado]))]
+        res[canalNuevo] = [res[canalNuevo][i//2] + probabilidades[estado][i] for i in range(len(probabilidades[estado]))]
     return res
 
 def marginalizar_columnas(probabilidades: dict, canal: int) -> dict:
     res = dict()
     for estado in probabilidades:
         canalNuevo = estado[:canal]+estado[canal+1:]
-        res[canalNuevo] = [0] * len(probabilidades[estado])
+        res[canalNuevo] = [0] * (len(probabilidades[estado]) // 2)
     for estado in probabilidades:
         canalNuevo = estado[:canal]+estado[canal+1:]
-        res[canalNuevo] = [res[canalNuevo][i] + probabilidades[estado][i] for i in range(len(probabilidades[estado]))]
+        res[canalNuevo] = [res[canalNuevo][i//2] + probabilidades[estado][i] for i in range(len(probabilidades[estado]))]
     return res
 
 def trasponerMatrizDict(diccionario: dict) -> dict:
@@ -199,7 +200,7 @@ def trasponerMatrizDict(diccionario: dict) -> dict:
 
 print(diccionarioProb)
 print()
-print(marginalizar_filas(diccionarioProb, 0))
+print(marginalizar_columnas(trasponerMatrizDict(diccionarioProb), 0))
 #Método para obtener las distribuciones de probabilidad usando las marginalizaciones y como parámetros vienen los canales a marginalizar
 def distribucion_sistema_partido(probabilidades: dict, canales_futuros: list, canales_actuales: list) -> dict:
     res = trasponerMatrizDict(probabilidades)
@@ -215,8 +216,8 @@ def distribucion_sistema_partido(probabilidades: dict, canales_futuros: list, ca
 
 def eliminar_canal_restar(canales: list, canal: int) -> list:
     return [canales[i] - 1 for i in range(len(canales)) if i != canal]
-print()
-print(distribucion_sistema_partido(diccionarioProb, [0], []))
+# print()
+# print(distribucion_sistema_partido(diccionarioProb, [0], []))
 
 
 
