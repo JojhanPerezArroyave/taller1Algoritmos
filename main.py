@@ -129,6 +129,7 @@ print(tableEstadoCanalF)
 # print(probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes)), varEstadosExistentes)
 
 diccionarioProb = probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes))
+diccionarioProbCanal = probabilidades(varFrecuenciaEstados, frecuenciaEstadosSiguientes(canales, varEstadosExistentes))
 # print(diccionarioProb)
 # tableEstadoCanalP = generateTable1(probabilidades(varFrecuenciaEstados, frecuenciaEstadosAnteriores(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
 # print(tableEstadoCanalP)
@@ -143,81 +144,29 @@ def distribucionEstado(probabilidades: dict, estado: str) -> list:
 
 # print(distribucionEstado(diccionarioProb, '000'))
 
-""""Dado el diccionaro que tiene las probabilidades del canal siguiente dado un estado actual,
-usa numpy para generar una distribución de probabilidades de uno de los canales dado un estado actual"""
-def distribucionCanal(probabilidades: dict, estado: str, canal: str) -> list:
-    return np.random.choice([0, 1], p=[1 - probabilidades[estado][int(canal)], probabilidades[estado][int(canal)]])
+def distribucionCanal(probabilidades: dict, canal: int) -> dict:
+    distribucion = {}
+    for estado in probabilidades:
+        distribucion[estado] = [probabilidades[estado][canal], 1 - probabilidades[estado][canal]]
+    return distribucion
 
-#print(distribucionCanal(diccionarioProb, '000', '0'))
 
-
-"""Dado el diccionario de probabilidades de estados siguientes, retorna una matriz en la que cada posición sea el arreglo de probabilidades de los estados"""
-def matrizProbabilidades(probabilidades: dict) -> list:
+"""Dado el diccionario de distribuciones de un canal dado un estado actual, conviertelo en una matriz"""
+def matrizDistribucionCanal(distribucion: dict) -> list:
     matriz = []
-    for estado in probabilidades:
-        matriz.append(probabilidades[estado])
-    return np.array(matriz)
-
-matriz = matrizProbabilidades(diccionarioProb)
+    for estado in distribucion:
+        matriz.append(distribucion[estado])
+    return matriz
 
 
-
-def print_matrix(matrix):
-    for row in matrix:
-        for element in row:
-            print(element, end=' ')
-        print()
+distribucionA = np.array(matrizDistribucionCanal(distribucionCanal(diccionarioProbCanal, 0)))
+distribucionB = np.array(matrizDistribucionCanal(distribucionCanal(diccionarioProbCanal, 1)))
+distribucionC = np.array(matrizDistribucionCanal(distribucionCanal(diccionarioProbCanal, 2)))
 
 
+tensor_product = np.tensordot(distribucionA, distribucionB, axes=(0, 0))
 
-def marginalizar_filas(probabilidades: dict, canal: str) -> dict:
-    res = dict()
-    for estado in probabilidades:
-        estadoNuevo = estado[:canal]+estado[canal+1:]
-        res[estadoNuevo] = [0] * (len(probabilidades[estado]) // 2)
-    for estado in probabilidades:
-        estadoNuevo = estado[:canal]+estado[canal+1:]
-        res[estadoNuevo] = [res[estadoNuevo][i] + probabilidades[estado][i*2] for i in range(len(probabilidades[estado])//2)]
-    return res
-
-def marginalizar_columnas(probabilidades: dict, canal: int) -> dict:
-    res = dict()
-    for estado in probabilidades:
-        estadoNuevo = estado[:canal]+estado[canal+1:] 
-        res[estadoNuevo] = [0] * (len(probabilidades[estado]) // 2)
-    
-    return res
-
-def trasponerMatrizDict(diccionario: dict) -> dict:
-    matriz = np.array(list(diccionario.values()))
-    matrizTranspuesta = np.transpose(matriz)
-    return {key: matrizTranspuesta[i].tolist() for i, key in enumerate(diccionario)}
-
-
-
-# # print(diccionarioProb)
-# # print()
-print(marginalizar_columnas(trasponerMatrizDict(diccionarioProb), 0))
-#Método para obtener las distribuciones de probabilidad usando las marginalizaciones y como parámetros vienen los canales a marginalizar
-def distribucion_sistema_partido(probabilidades: dict, canales_futuros: list, canales_actuales: list) -> dict:
-    res = trasponerMatrizDict(probabilidades)
-    for i in range(len(canales_futuros)):
-        res = marginalizar_columnas(res, canales_futuros[i])
-        eliminar_canal_restar(canales_futuros, canales_futuros[i])
-    for i in range(len(canales_actuales)):
-        res = trasponerMatrizDict(res)
-        res = marginalizar_filas(res, canales_actuales[i])
-        eliminar_canal_restar(canales_actuales, canales_actuales[i])
-    return res
-
-
-def eliminar_canal_restar(canales: list, canal: int) -> list:
-    return [canales[i] - 1 for i in range(len(canales)) if i != canal]
-# print()
-# print(distribucion_sistema_partido(diccionarioProb, [0], []))
-
-
-
+print(tensor_product)
 
 
 
