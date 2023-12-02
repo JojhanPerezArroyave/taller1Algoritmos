@@ -200,7 +200,7 @@ def trasponerMatrizDict(diccionario: dict) -> dict:
 
 print(diccionarioProb)
 print()
-print(marginalizar_columnas(trasponerMatrizDict(diccionarioProb), 0))
+print(marginalizar_columnas(diccionarioProb), 0)
 #Método para obtener las distribuciones de probabilidad usando las marginalizaciones y como parámetros vienen los canales a marginalizar
 def distribucion_sistema_partido(probabilidades: dict, canales_futuros: list, canales_actuales: list) -> dict:
     res = trasponerMatrizDict(probabilidades)
