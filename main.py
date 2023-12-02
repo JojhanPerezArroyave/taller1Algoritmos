@@ -150,38 +150,74 @@ def distribucionCanal(probabilidades: dict, estado: str, canal: str) -> list:
 
 #print(distribucionCanal(diccionarioProb, '000', '0'))
 
-"""Dado el diccionario de probabilidades de estados siguientes, necesito marginalizar un canal del estado siguiente, es decir, sumar las probabilidades
-de los estados siguientes que queden iguales dado que se quite uno de sus canales, por ejemplo, si el estado actual es 000 y marginalizo el canal 0 de los estados siguientes,
- entonces quedaría asi: 000: [0.0,0.0,0.5,0.5], debido a que sumo los estados siguientes 000 y 100, los 010 y 110 quedan iguales, y los 001 y 101 quedan iguales.
- o por ejemplo, si el estado actual es 000 y marginalizo el canal 1 de los estados siguientes,
- entonces quedaría asi: 000: [0.0,0.0,0.5,0.5], debido a que sumo los estados siguientes 000 y 010, los 100 y 110 quedan iguales, y los 111 y 101 y el 001 y 011 quedan iguales."""
-def marginalizarCanal(probabilidades: dict, canal: str) -> dict:
+
+"""Dado el diccionario de probabilidades de estados siguientes, retorna una matriz en la que cada posición sea el arreglo de probabilidades de los estados"""
+def matrizProbabilidades(probabilidades: dict) -> list:
+    matriz = []
     for estado in probabilidades:
-        if canal == '0':
-            probabilidades[estado] = [probabilidades[estado][0] + probabilidades[estado][1],
-                                      probabilidades[estado][2] + probabilidades[estado][3],
-                                      probabilidades[estado][4] + probabilidades[estado][5] + probabilidades[estado][6] + probabilidades[estado][7]]
-            probabilidades[estado] = probabilidades[estado][:3]
-        elif canal == '1':
-            probabilidades[estado] = [probabilidades[estado][0] + probabilidades[estado][2],
-                                      probabilidades[estado][1] + probabilidades[estado][3],
-                                      probabilidades[estado][4] + probabilidades[estado][6],
-                                      probabilidades[estado][5] + probabilidades[estado][7]]
-            probabilidades[estado] = probabilidades[estado][:2] + probabilidades[estado][2:4]
-        elif canal == '2':
-            probabilidades[estado] = [probabilidades[estado][0] + probabilidades[estado][1],
-                                      probabilidades[estado][2] + probabilidades[estado][3],
-                                      probabilidades[estado][4] + probabilidades[estado][5],
-                                      probabilidades[estado][6] + probabilidades[estado][7]]
-            probabilidades[estado] = probabilidades[estado][:2] + probabilidades[estado][2:4]
-    return probabilidades
+        matriz.append(probabilidades[estado])
+    return np.array(matriz)
 
-# Ejemplo de uso
-diccionarioProb = {'000': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]}
-print(marginalizarCanal(diccionarioProb, '1'))
+matriz = matrizProbabilidades(diccionarioProb)
 
 
-print(marginalizarCanal(diccionarioProb, '0'))
+
+def print_matrix(matrix):
+    for row in matrix:
+        for element in row:
+            print(element, end=' ')
+        print()
+
+
+
+def marginalizar_filas(probabilidades: dict, canal: str) -> dict:
+    res = dict()
+    for estado in probabilidades:
+        canalNuevo = estado[:canal]+estado[canal+1:]
+        res[canalNuevo] = [0] * len(probabilidades[estado])
+    for estado in probabilidades:
+        canalNuevo = estado[:canal]+estado[canal+1:]
+        res[canalNuevo] = [res[canalNuevo][i] + probabilidades[estado][i] for i in range(len(probabilidades[estado]))]
+    return res
+
+def marginalizar_columnas(probabilidades: dict, canal: int) -> dict:
+    res = dict()
+    for estado in probabilidades:
+        canalNuevo = estado[:canal]+estado[canal+1:]
+        res[canalNuevo] = [0] * len(probabilidades[estado])
+    for estado in probabilidades:
+        canalNuevo = estado[:canal]+estado[canal+1:]
+        res[canalNuevo] = [res[canalNuevo][i] + probabilidades[estado][i] for i in range(len(probabilidades[estado]))]
+    return res
+
+def trasponerMatrizDict(diccionario: dict) -> dict:
+    matriz = np.array(list(diccionario.values()))
+    matrizTranspuesta = np.transpose(matriz)
+    return {key: matrizTranspuesta[i].tolist() for i, key in enumerate(diccionario)}
+
+
+
+print(diccionarioProb)
+print()
+print(marginalizar_filas(diccionarioProb, 0))
+#Método para obtener las distribuciones de probabilidad usando las marginalizaciones y como parámetros vienen los canales a marginalizar
+def distribucion_sistema_partido(probabilidades: dict, canales_futuros: list, canales_actuales: list) -> dict:
+    res = trasponerMatrizDict(probabilidades)
+    for i in range(len(canales_futuros)):
+        res = marginalizar_columnas(res, canales_futuros[i])
+        eliminar_canal_restar(canales_futuros, canales_futuros[i])
+    for i in range(len(canales_actuales)):
+        res = trasponerMatrizDict(res)
+        res = marginalizar_filas(res, canales_actuales[i])
+        eliminar_canal_restar(canales_actuales, canales_actuales[i])
+    return res
+
+
+def eliminar_canal_restar(canales: list, canal: int) -> list:
+    return [canales[i] - 1 for i in range(len(canales)) if i != canal]
+print()
+print(distribucion_sistema_partido(diccionarioProb, [0], []))
+
 
 
 
