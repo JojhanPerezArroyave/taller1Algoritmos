@@ -120,8 +120,8 @@ def frecuenciaEstadosAnteriores(canales: dict, estados: list) -> dict:
 varFrecuenciaEstados = frecuenciaEstados(canales, estadosExistentes(canales));
 varEstadosExistentes = estadosExistentes(canales)
 
-# tableEstadoCanalF = generateTable1(probabilidades(varFrecuenciaEstados, frecuenciaEstadosSiguientes(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
-# print(tableEstadoCanalF)
+tableEstadoCanalF = generateTable1(probabilidades(varFrecuenciaEstados, frecuenciaEstadosSiguientes(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
+print(tableEstadoCanalF)
 #print(probabilidades(varFrecuenciaEstados, frecuenciaEstadosSiguientes(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
 
 # tableEstadoEstadoF = generateTable1(probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes)), varEstadosExistentes)
@@ -172,23 +172,20 @@ def print_matrix(matrix):
 
 def marginalizar_filas(probabilidades: dict, canal: str) -> dict:
     res = dict()
-    
     for estado in probabilidades:
-        canalNuevo = estado[:canal]+estado[canal+1:]
-        res[canalNuevo] = [0] * (len(probabilidades[estado]) // 2)
+        estadoNuevo = estado[:canal]+estado[canal+1:]
+        res[estadoNuevo] = [0] * (len(probabilidades[estado]) // 2)
     for estado in probabilidades:
-        canalNuevo = estado[:canal]+estado[canal+1:]
-        res[canalNuevo] = [res[canalNuevo][i//2] + probabilidades[estado][i] for i in range(len(probabilidades[estado]))]
+        estadoNuevo = estado[:canal]+estado[canal+1:]
+        res[estadoNuevo] = [res[estadoNuevo][i] + probabilidades[estado][i*2] for i in range(len(probabilidades[estado])//2)]
     return res
 
 def marginalizar_columnas(probabilidades: dict, canal: int) -> dict:
     res = dict()
     for estado in probabilidades:
-        canalNuevo = estado[:canal]+estado[canal+1:]
-        res[canalNuevo] = [0] * (len(probabilidades[estado]) // 2)
-    for estado in probabilidades:
-        canalNuevo = estado[:canal]+estado[canal+1:]
-        res[canalNuevo] = [res[canalNuevo][i//2] + probabilidades[estado][i] for i in range(len(probabilidades[estado]))]
+        estadoNuevo = estado[:canal]+estado[canal+1:] 
+        res[estadoNuevo] = [0] * (len(probabilidades[estado]) // 2)
+    
     return res
 
 def trasponerMatrizDict(diccionario: dict) -> dict:
@@ -198,9 +195,9 @@ def trasponerMatrizDict(diccionario: dict) -> dict:
 
 
 
-print(diccionarioProb)
-print()
-print(marginalizar_columnas(diccionarioProb), 0)
+# # print(diccionarioProb)
+# # print()
+print(marginalizar_columnas(trasponerMatrizDict(diccionarioProb), 0))
 #Método para obtener las distribuciones de probabilidad usando las marginalizaciones y como parámetros vienen los canales a marginalizar
 def distribucion_sistema_partido(probabilidades: dict, canales_futuros: list, canales_actuales: list) -> dict:
     res = trasponerMatrizDict(probabilidades)
