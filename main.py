@@ -16,7 +16,6 @@ def estadosExistentes(canales: dict) -> list:
     estados = set()
     num_tiempos = len(list(canales.values())[0]) 
     orden_definido = ['000', '100', '010', '110', '001', '101', '011', '111']  # Define el orden según el comentario
-
     for i in range(num_tiempos):
         estado = "".join(canales[canal][i] for canal in canales)
         estados.add(estado)
@@ -182,11 +181,19 @@ def marginalizar_filas(probabilidades: dict, canal: str) -> dict:
 
 def marginalizar_columnas(probabilidades: dict, canal: int) -> dict:
     res = dict()
+    orden_definido = ['000', '100', '010', '110', '001', '101', '011', '111']  # Define el orden según el comentario
+
     for estado in probabilidades:
-        estadoNuevo = estado[:canal]+estado[canal+1:] 
-        res[estadoNuevo] = [0] * (len(probabilidades[estado]) // 2)
+        estadoNuevo = estado[:canal]+estado[canal+1:]
+        if res[estadoNuevo] is None: 
+            res[estadoNuevo] = [0] * (len(probabilidades[estado]) // 2)
+        res[estadoNuevo] = None
     
     return res
+
+def sumar_listas_intervalo(lista_grande: list, lista_pequena: list, intervalo: int):
+    for i in range(0, len(lista_grande), intervalo):
+        lista_pequena[i//2] = None
 
 def trasponerMatrizDict(diccionario: dict) -> dict:
     matriz = np.array(list(diccionario.values()))
@@ -197,6 +204,7 @@ def trasponerMatrizDict(diccionario: dict) -> dict:
 
 # # print(diccionarioProb)
 # # print()
+
 print(marginalizar_columnas(trasponerMatrizDict(diccionarioProb), 0))
 #Método para obtener las distribuciones de probabilidad usando las marginalizaciones y como parámetros vienen los canales a marginalizar
 def distribucion_sistema_partido(probabilidades: dict, canales_futuros: list, canales_actuales: list) -> dict:
