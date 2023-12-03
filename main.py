@@ -124,8 +124,8 @@ tableEstadoCanalF = generateTable1(probabilidades(varFrecuenciaEstados, frecuenc
 print(tableEstadoCanalF)
 #print(probabilidades(varFrecuenciaEstados, frecuenciaEstadosSiguientes(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
 
-# tableEstadoEstadoF = generateTable1(probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes)), varEstadosExistentes)
-# print(tableEstadoEstadoF)
+tableEstadoEstadoF = generateTable1(probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes)), varEstadosExistentes)
+print(tableEstadoEstadoF)
 # print(probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes)), varEstadosExistentes)
 
 diccionarioProb = probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes))
@@ -158,15 +158,55 @@ def matrizDistribucionCanal(distribucion: dict) -> list:
         matriz.append(distribucion[estado])
     return matriz
 
+def marginalizar_fila(diccionario, indice):
+    nuevo_diccionario = {}
 
-distribucionA = np.array(matrizDistribucionCanal(distribucionCanal(diccionarioProbCanal, 0)))
-distribucionB = np.array(matrizDistribucionCanal(distribucionCanal(diccionarioProbCanal, 1)))
-distribucionC = np.array(matrizDistribucionCanal(distribucionCanal(diccionarioProbCanal, 2)))
+    for clave, valores in diccionario.items():
+        nueva_clave = clave[:indice] + clave[indice + 1:]
+        if nueva_clave in nuevo_diccionario:
+            nuevo_diccionario[nueva_clave] = [sum(x)/2 for x in zip(nuevo_diccionario[nueva_clave], valores)]
+        else:
+            nuevo_diccionario[nueva_clave] = valores
+
+    return nuevo_diccionario
+
+def marginalizar_columna(diccionario, indice):
+    nuevo_diccionario = {}
+
+    for clave, valores in diccionario.items():
+        nueva_clave = clave[:indice] + clave[indice + 1:]
+        if nueva_clave in nuevo_diccionario:
+            nuevo_diccionario[nueva_clave] = [sum(x) for x in zip(nuevo_diccionario[nueva_clave], valores)]
+        else:
+            nuevo_diccionario[nueva_clave] = valores
+
+    return nuevo_diccionario
+
+def trasponerMatrizDict(diccionario: dict) -> dict:
+    matriz = np.array(list(diccionario.values()))
+    matrizTranspuesta = np.transpose(matriz)
+    return {key: matrizTranspuesta[i].tolist() for i, key in enumerate(diccionario)}
+
+def distribucion_sistema_partido(probabilidades: dict, canales_futuros: list, canales_actuales: list) -> dict:
+    res = trasponerMatrizDict(probabilidades)
+    for i in range(len(canales_futuros)):
+        res = marginalizar_columna(res, canales_futuros[i])
+    for i in range(len(canales_actuales)):
+        res = trasponerMatrizDict(res)
+        res = marginalizar_fila(res, canales_actuales[i])
+    return res
 
 
-tensor_product = np.tensordot(distribucionA, distribucionB, axes=(0, 0))
+# distribucionA = np.array(distribucionCanal(diccionarioProbCanal, 0)['000'])
+# distribucionB = np.array(distribucionCanal(diccionarioProbCanal, 1)['000'])
+# distribucionC = np.array(distribucionCanal(diccionarioProbCanal, 2)['000'])
 
-print(tensor_product)
+
+# tensor_product = np.kron(distribucionB, distribucionC)
+
+dist_partida = distribucion_sistema_partido(diccionarioProb, [0], [])
+
+print(trasponerMatrizDict(dist_partida))
 
 
 
