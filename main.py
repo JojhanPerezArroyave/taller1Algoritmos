@@ -16,7 +16,6 @@ def estadosExistentes(canales: dict) -> list:
     estados = set()
     num_tiempos = len(list(canales.values())[0]) 
     orden_definido = ['000', '100', '010', '110', '001', '101', '011', '111']  # Define el orden según el comentario
-
     for i in range(num_tiempos):
         estado = "".join(canales[canal][i] for canal in canales)
         estados.add(estado)
@@ -27,17 +26,17 @@ def estadosExistentes(canales: dict) -> list:
 
 
 
-"""Devuelve un diccionario el cual por cada estado existente en la lista de estados, devuelve cuántas veces se encuentra este en los canales de comunicación."""
+"""Devuelve un diccionario el cual por cada estado existente en la lista de estados, devuelve cuántas veces se encuentra este en los canales de comunicación, pero si el estado se encuentra al final, este no se cuenta."""
 def frecuenciaEstados(canales: dict, estados: list) -> dict:
-    frecuencias = dict()
-    num_tiempos = len(list(canales.values())[0]) 
-    
+    num_canales = len(canales)
+    frecuencias = {estado: 0 for estado in estados}
+    num_tiempos = len(list(canales.values())[0])
+
     for estado in estados:
-        frecuencias[estado] = 0
-        for i in range(num_tiempos):
+        for i in range(num_tiempos - 1):
             if estado == "".join(canales[canal][i] for canal in canales):
                 frecuencias[estado] += 1
-    
+
     return frecuencias
 
 
@@ -181,6 +180,10 @@ def marginalizar_columna(diccionario, indice):
             nuevo_diccionario[nueva_clave] = valores
 
     return nuevo_diccionario
+
+def sumar_listas_intervalo(lista_grande: list, lista_pequena: list, intervalo: int):
+    for i in range(0, len(lista_grande), intervalo):
+        lista_pequena[i//2] = None
 
 def trasponerMatrizDict(diccionario: dict) -> dict:
     matriz = np.array(list(diccionario.values()))
