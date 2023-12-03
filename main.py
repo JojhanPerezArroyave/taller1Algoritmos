@@ -181,35 +181,23 @@ def marginalizar_columna(diccionario, indice):
 
     return nuevo_diccionario
 
-def sumar_listas_intervalo(lista_grande: list, lista_pequena: list, intervalo: int):
-    for i in range(0, len(lista_grande), intervalo):
-        lista_pequena[i//2] = None
-
-def trasponerMatrizDict(diccionario: dict) -> dict:
+def trasponerMatrizDictKeys(diccionario: dict, keys: list) -> dict:
     matriz = np.array(list(diccionario.values()))
     matrizTranspuesta = np.transpose(matriz)
-    return {key: matrizTranspuesta[i].tolist() for i, key in enumerate(diccionario)}
+    return {key: matrizTranspuesta[i].tolist() for i, key in enumerate(keys)}
 
 def distribucion_sistema_partido(probabilidades: dict, canales_futuros: list, canales_actuales: list) -> dict:
-    res = trasponerMatrizDict(probabilidades)
+    res = trasponerMatrizDictKeys(probabilidades, list(probabilidades.keys()))
     for i in range(len(canales_futuros)):
         res = marginalizar_columna(res, canales_futuros[i])
+    res = trasponerMatrizDictKeys(res, list(probabilidades.keys()))
     for i in range(len(canales_actuales)):
-        res = trasponerMatrizDict(res)
         res = marginalizar_fila(res, canales_actuales[i])
     return res
 
+dist_partida = distribucion_sistema_partido(diccionarioProb, [], [0])
 
-# distribucionA = np.array(distribucionCanal(diccionarioProbCanal, 0)['000'])
-# distribucionB = np.array(distribucionCanal(diccionarioProbCanal, 1)['000'])
-# distribucionC = np.array(distribucionCanal(diccionarioProbCanal, 2)['000'])
-
-
-# tensor_product = np.kron(distribucionB, distribucionC)
-
-dist_partida = distribucion_sistema_partido(diccionarioProb, [0], [])
-
-print(trasponerMatrizDict(dist_partida))
+print(dist_partida)
 
 
 
