@@ -186,16 +186,16 @@ def trasponerMatrizDictKeys(diccionario: dict, keys: list) -> dict:
     matrizTranspuesta = np.transpose(matriz)
     return {key: matrizTranspuesta[i].tolist() for i, key in enumerate(keys)}
 
-def distribucion_sistema_partido(probabilidades: dict, canales_futuros: list, canales_actuales: list) -> dict:
+def distribucion_sistema_partido(probabilidades: dict, canales_futuros: list, canales_actuales: list, estado_actual: str) -> dict:
     res = trasponerMatrizDictKeys(probabilidades, list(probabilidades.keys()))
     for i in range(len(canales_futuros)):
         res = marginalizar_columna(res, canales_futuros[i])
     res = trasponerMatrizDictKeys(res, list(probabilidades.keys()))
     for i in range(len(canales_actuales)):
         res = marginalizar_fila(res, canales_actuales[i])
-    return res
+    return res[estado_actual]
 
-dist_partida = distribucion_sistema_partido(diccionarioProb, [], [0])
+dist_partida = distribucion_sistema_partido(diccionarioProb, [1], [0], '00')
 
 print(dist_partida)
 
