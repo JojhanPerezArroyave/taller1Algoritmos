@@ -1,5 +1,8 @@
 import tabulate as tb
 import numpy as np
+import pyphi
+import itertools
+from scipy.stats import wasserstein_distance
 import string
 
 canales = {}
@@ -222,8 +225,9 @@ def matrizDistribucionCanal(distribucion: dict) -> list:
     """
 def marginalizar_fila(diccionario, indice):
     nuevo_diccionario = {}
-
     for clave, valores in diccionario.items():
+        if indice >= len(clave):
+            indice -= 1
         nueva_clave = clave[:indice] + clave[indice + 1:]
         if nueva_clave in nuevo_diccionario:
             nuevo_diccionario[nueva_clave] = [sum(x)/2 for x in zip(nuevo_diccionario[nueva_clave], valores)]
@@ -284,19 +288,112 @@ def trasponerMatrizDictKeys(diccionario: dict, keys: list) -> dict:
         dict: Un diccionario que representa la distribución del sistema de partidos políticos,
               donde las claves son estados reducidos y los valores son listas de probabilidades correspondientes.
 """
-def distribucion_sistema_partido(probabilidades: dict, canales_futuros: list, canales_actuales: list, estado_actual: str) -> dict:
+def distribucion_sistema_partido(probabilidades: dict, canales_futuros: list, canales_actuales: list) -> dict:
+    if -1 not in canales_futuros:
+        return distribucion_vacia(canales_actuales)
+    if -1 not in canales_actuales:
+        return distribucion_vacia(canales_futuros)
     res = trasponerMatrizDictKeys(probabilidades, list(probabilidades.keys()))
     for i in range(len(canales_futuros)):
-        res = marginalizar_columna(res, canales_futuros[i])
+        if canales_futuros[i] != -1:
+            res = marginalizar_columna(res, canales_futuros[i])
     res = trasponerMatrizDictKeys(res, list(probabilidades.keys()))
     for i in range(len(canales_actuales)):
-        res = marginalizar_fila(res, canales_actuales[i])
-    return res[estado_actual]
+        if canales_actuales[i] != -1:
+            res = marginalizar_fila(res, canales_actuales[i])
+    return res
+
+def distribucion_vacia(canales: list):
+    existentes = 0
+    for element in canales:
+        if element == -1:
+            existentes += 1
+    res = {}
+    res['E'] = [1/(2**existentes) for i in range(2**existentes)]
+    return res
 
 """El primer array sirve para la marginalización de columnas, el segundo para la marginalización de filas"""""
-dist_partida = distribucion_sistema_partido(diccionarioProb, [0], [0], '00')
+dist_partida = distribucion_sistema_partido(diccionarioProb, [0, 1, -1], [0, -1, -1])
 
 print(dist_partida)
+
+
+def generar_combinaciones(posiciones_restantes, combinacion_actual, todas_combinaciones):
+    if not posiciones_restantes:
+        todas_combinaciones.append(tuple(combinacion_actual))
+        return
+
+    # Recursivamente generar combinaciones para cada posición
+    for valor in posiciones_restantes[0]:
+        generar_combinaciones(posiciones_restantes[1:], combinacion_actual + [valor], todas_combinaciones)
+
+def particiones_sistema(sistema_original: dict, estado_actual: str) -> float:
+    distribucion_original = sistema_original[estado_actual]
+
+    # Definir restricciones para cada posición
+    restricciones = [[0, -1], [1, -1], [2, -1]]  # Puedes agregar más restricciones según sea necesario
+
+    # Generar todas las combinaciones posibles según las restricciones
+    todas_combinaciones = []
+    generar_combinaciones(restricciones, [], todas_combinaciones)
+
+    min_emd = float('inf')
+    min_partition = None
+
+    for i in range(len(todas_combinaciones)):
+        for j in range(len(todas_combinaciones)):
+            if not (todas_combinaciones[i] == (0,1,2) and todas_combinaciones[j] == (0,1,2)) and not (todas_combinaciones[i] == (-1,-1,-1) and todas_combinaciones[j] == (0,1,2)) and not (todas_combinaciones[i] == (0,1,2) and todas_combinaciones[j] == (-1,-1,-1)):
+                estado_particion_1 = ''
+                estado_particion_2 = ''
+                particion_1 = distribucion_sistema_partido(sistema_original, todas_combinaciones[i], todas_combinaciones[j])
+                opuesto_futuro = opposite_index_select(todas_combinaciones, i)
+                opuesto_actual = opposite_index_select(todas_combinaciones, j)
+                particion_2 = distribucion_sistema_partido(sistema_original, opuesto_futuro, opuesto_actual)
+                if 'E' in particion_1.keys():
+                    estado_particion_1 = 'E'
+                    estado_particion_2 = indice_estado_actual(estado_actual, opposite_index_select(todas_combinaciones, j))
+                if 'E' in particion_2.keys():
+                    estado_particion_1 = indice_estado_actual(estado_actual, todas_combinaciones[j])
+                    estado_particion_2 = 'E'
+                if 'E' not in particion_1.keys() and 'E' not in particion_2.keys():
+                    estado_particion_1 = indice_estado_actual(estado_actual, todas_combinaciones[j])
+                    estado_particion_2 = indice_estado_actual(estado_actual, opposite_index_select(todas_combinaciones, j))
+                distribucion_particion_1 = particion_1[estado_particion_1]
+                distribucion_particion_2 = particion_2[estado_particion_2]
+                distribucion_combinada = np.kron(distribucion_particion_1, distribucion_particion_2)
+
+                distancia = wasserstein_distance(np.array(distribucion_original), distribucion_combinada)
+
+                if distancia < min_emd:
+                    min_emd = distancia
+                    min_partition = (distribucion_particion_1, distribucion_particion_2)
+    return min_partition
+
+                
+
+def indice_estado_actual(estado_actual: str, canales: list):
+    estado = ''
+    for i in range(len(canales)):
+        if canales[i] == -1:
+            estado += estado_actual[i]
+    return estado
+            
+
+def opposite_index_select(lst, index):
+    # Calculate the opposite index
+    opposite_index = len(lst) - 1 - index
+    
+    # Check if the opposite index is within the valid range
+    if 0 <= opposite_index < len(lst):
+        # Return the element at the opposite index
+        return lst[opposite_index]
+    else:
+        # Handle the case when the opposite index is out of range
+        return None
+
+print()
+particiones_opt = particiones_sistema(diccionarioProb, '000')
+print(particiones_opt)
 
 
 
