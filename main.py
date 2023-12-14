@@ -284,7 +284,7 @@ def trasponerMatrizDictKeys(diccionario: dict, keys: list) -> dict:
         dict: Un diccionario que representa la distribución del sistema de partidos políticos,
               donde las claves son estados reducidos y los valores son listas de probabilidades correspondientes.
 """
-def distribucion_sistema_partido(probabilidades: dict, canales_futuros: list, canales_actuales: list) -> dict:
+def distribucion_sistema_partido(probabilidades: dict, canales_futuros: list, canales_actuales: list, estado_actual: str) -> dict:
     res = trasponerMatrizDictKeys(probabilidades, list(probabilidades.keys()))
     for i in range(len(canales_futuros)):
         res = marginalizar_columna(res, canales_futuros[i])
@@ -294,7 +294,7 @@ def distribucion_sistema_partido(probabilidades: dict, canales_futuros: list, ca
     return res[estado_actual]
 
 """El primer array sirve para la marginalización de columnas, el segundo para la marginalización de filas"""""
-dist_partida = distribucion_sistema_partido(diccionarioProb, [0], [])
+dist_partida = distribucion_sistema_partido(diccionarioProb, [0], [0], '00')
 
 print(dist_partida)
 
