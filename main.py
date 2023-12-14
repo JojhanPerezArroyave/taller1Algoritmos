@@ -56,6 +56,17 @@ def frecuenciaEstadosSiguientes(canales: dict, estados: list) -> dict:
 
     return frecuencias
 
+"""
+    Calcula las probabilidades condicionales de transición entre estados.
+
+    Parameters:
+        - frecuenciaEstados (dict): Un diccionario que contiene las frecuencias de ocurrencia de estados en canales de comunicación.
+        - frecuenciaEstadosSiguientes (dict): Un diccionario que contiene las frecuencias de ocurrencia de estados siguientes en canales de comunicación.
+
+    Returns:
+        dict: Un diccionario que representa las probabilidades condicionales de transición entre estados.
+              Las claves son estados y los valores son listas de probabilidades correspondientes a cada estado siguiente.
+    """
 def probabilidades(frecuenciaEstados: dict, frecuenciaEstadosSiguientes: dict) -> dict:
     probabilidades = dict()
     for estado in frecuenciaEstados:
@@ -79,14 +90,33 @@ def probabilidadesEstadosSiguientes(canales: dict, estados: list) -> dict:
 
     return probabilidades
 
+"""
+    Genera una tabla formateada a partir de un diccionario de datos y una lista de encabezados.
 
+    Parameters:
+        - data (dict): Un diccionario donde las claves son etiquetas y los valores son listas de datos asociados.
+        - headers (list): Una lista que contiene los encabezados de la tabla.
+
+    Returns:
+        str: Una representación en formato de cadena de la tabla generada utilizando la librería 'tabulate'.
+    """
 def generateTable1(data: dict, headers: list) -> str:
     table_data = []
     for key, values in data.items():
         table_data.append([key] + values)
     return tb.tabulate(table_data, headers, tablefmt="fancy_grid")
 
+"""
+    Calcula las probabilidades de transición entre estados anteriores en canales de comunicación.
 
+    Parameters:
+        - canales (dict): Un diccionario con claves que representan nombres de canales y valores que son listas de estados en cada instante de tiempo.
+        - estados (list): Una lista de estados para los cuales se calcularán las probabilidades de transición desde estados anteriores.
+
+    Returns:
+        dict: Un diccionario que representa las probabilidades de transición desde estados anteriores para cada estado en la lista proporcionada.
+              Las claves son estados y los valores son listas de probabilidades correspondientes a cada estado siguiente en la lista.
+"""
 def probabilidadesEstadosAnteriores(canales: dict, estados: list) -> dict:
     probabilidades = {estado: [0] * len(estados) for estado in estados}
     num_tiempos = len(list(canales.values())[0])
@@ -100,6 +130,17 @@ def probabilidadesEstadosAnteriores(canales: dict, estados: list) -> dict:
 
     return probabilidades
 
+"""
+    Calcula la frecuencia de estados anteriores en canales de comunicación.
+
+    Parameters:
+        - canales (dict): Un diccionario con claves que representan nombres de canales y valores que son listas de estados en cada instante de tiempo.
+        - estados (list): Una lista de estados para los cuales se calculará la frecuencia de estados anteriores.
+
+    Returns:
+        dict: Un diccionario que representa la frecuencia de estados anteriores para cada estado en la lista proporcionada.
+              Las claves son estados y los valores son listas de frecuencias correspondientes a cada canal de comunicación.
+"""
 def frecuenciaEstadosAnteriores(canales: dict, estados: list) -> dict:
     num_canales = len(canales)
     frecuencias = {estado: [0] * num_canales for estado in estados}
@@ -143,6 +184,17 @@ def distribucionEstado(probabilidades: dict, estado: str) -> list:
 
 # print(distribucionEstado(diccionarioProb, '000'))
 
+"""
+    Calcula la distribución de un canal específico a partir de un diccionario de probabilidades de transición.
+
+    Parameters:
+        - probabilidades (dict): Un diccionario con claves que representan estados y valores que son listas de probabilidades de transición.
+        - canal (int): Índice del canal para el cual se calculará la distribución.
+
+    Returns:
+        dict: Un diccionario que representa la distribución del canal especificado,
+              donde las claves son estados y los valores son listas de probabilidades y sus complementos.
+"""
 def distribucionCanal(probabilidades: dict, canal: int) -> dict:
     distribucion = {}
     for estado in probabilidades:
@@ -157,6 +209,17 @@ def matrizDistribucionCanal(distribucion: dict) -> list:
         matriz.append(distribucion[estado])
     return matriz
 
+"""
+    Marginaliza una fila específica en un diccionario, reduciendo la dimensión de los datos.
+    
+    Parameters:
+        - diccionario (dict): Un diccionario con claves que representan estados y valores que son listas asociadas.
+        - indice (int): Índice de la posición que se eliminará en cada clave del diccionario.
+
+    Returns:
+        dict: Un nuevo diccionario marginalizado, donde las claves son versiones reducidas de las claves originales,
+              y los valores son promedios ponderados de las listas originales en la posición especificada.
+    """
 def marginalizar_fila(diccionario, indice):
     nuevo_diccionario = {}
 
@@ -169,6 +232,17 @@ def marginalizar_fila(diccionario, indice):
 
     return nuevo_diccionario
 
+"""
+    Marginaliza una columna específica en un diccionario, reduciendo la dimensión de los datos.
+
+    Parameters:
+        - diccionario (dict): Un diccionario con claves que representan estados y valores que son listas asociadas.
+        - indice (int): Índice de la posición que se eliminará en cada clave del diccionario.
+
+    Returns:
+        dict: Un nuevo diccionario marginalizado, donde las claves son versiones reducidas de las claves originales,
+              y los valores son sumas acumulativas de las listas originales en la posición especificada.
+    """
 def marginalizar_columna(diccionario, indice):
     nuevo_diccionario = {}
 
@@ -181,12 +255,36 @@ def marginalizar_columna(diccionario, indice):
 
     return nuevo_diccionario
 
+"""
+    Transpone una matriz representada por un diccionario, intercambiando filas y columnas,
+    y reorganiza las claves del diccionario según una nueva lista de claves.
+
+    Parameters:
+        - diccionario (dict): Un diccionario donde las claves representan las filas y los valores son listas asociadas.
+        - keys (list): Una lista de nuevas claves que se utilizarán para organizar el diccionario resultante.
+
+    Returns:
+        dict: Un nuevo diccionario transpuesto, donde las claves son las nuevas claves proporcionadas,
+              y los valores son las columnas correspondientes de la matriz original.
+    """
 def trasponerMatrizDictKeys(diccionario: dict, keys: list) -> dict:
     matriz = np.array(list(diccionario.values()))
     matrizTranspuesta = np.transpose(matriz)
     return {key: matrizTranspuesta[i].tolist() for i, key in enumerate(keys)}
 
-def distribucion_sistema_partido(probabilidades: dict, canales_futuros: list, canales_actuales: list, estado_actual: str) -> dict:
+"""
+    Calcula la distribución del sistema de partidos políticos a partir de probabilidades de transición.
+
+    Parameters:
+        - probabilidades (dict): Un diccionario con claves que representan estados y valores que son listas de probabilidades de transición.
+        - canales_futuros (list): Una lista de índices de canales que se eliminarán al calcular la distribución del sistema futuro.
+        - canales_actuales (list): Una lista de índices de canales que se eliminarán al calcular la distribución del sistema actual.
+
+    Returns:
+        dict: Un diccionario que representa la distribución del sistema de partidos políticos,
+              donde las claves son estados reducidos y los valores son listas de probabilidades correspondientes.
+"""
+def distribucion_sistema_partido(probabilidades: dict, canales_futuros: list, canales_actuales: list) -> dict:
     res = trasponerMatrizDictKeys(probabilidades, list(probabilidades.keys()))
     for i in range(len(canales_futuros)):
         res = marginalizar_columna(res, canales_futuros[i])
@@ -195,7 +293,8 @@ def distribucion_sistema_partido(probabilidades: dict, canales_futuros: list, ca
         res = marginalizar_fila(res, canales_actuales[i])
     return res[estado_actual]
 
-dist_partida = distribucion_sistema_partido(diccionarioProb, [1], [0], '00')
+"""El primer array sirve para la marginalización de columnas, el segundo para la marginalización de filas"""""
+dist_partida = distribucion_sistema_partido(diccionarioProb, [0], [])
 
 print(dist_partida)
 
