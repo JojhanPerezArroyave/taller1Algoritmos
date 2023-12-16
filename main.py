@@ -369,8 +369,6 @@ def particiones_sistema(sistema_original: dict, estado_actual: str) -> float:
                     min_partition = (distribucion_particion_1, distribucion_particion_2)
     return min_partition
 
-                
-
 def indice_estado_actual(estado_actual: str, canales: list):
     estado = ''
     for i in range(len(canales)):
@@ -391,9 +389,105 @@ def opposite_index_select(lst, index):
         # Handle the case when the opposite index is out of range
         return None
 
-print()
-particiones_opt = particiones_sistema(diccionarioProb, '000')
-print(particiones_opt)
+def merge_sort_select_min(arr, sistema_original, estado_actual, combinaciones):
+    if len(arr) <= 1:
+        return arr
+
+    # Divide la lista en mitades
+    mid = len(arr) // 2
+    left_half = arr[:mid]
+    right_half = arr[mid:]
+
+    # Llamada recursiva para ordenar y seleccionar el mínimo en las mitades
+    left_half = merge_sort_select_min(left_half, sistema_original, estado_actual, combinaciones)
+    right_half = merge_sort_select_min(right_half, sistema_original, estado_actual, combinaciones)
+
+    # Fusionar las mitades ordenadas
+    result = merge(left_half, right_half, sistema_original, estado_actual, combinaciones)
+
+    return result
+
+def merge(left, right, sistema_original, estado_actual, combinaciones):
+    result = []
+    i = j = 0
+
+    while i < len(left) and j < len(right):
+        # Comparar elementos y seleccionar el menor
+        lado_izq = obtener_emd_sistema(sistema_original, estado_actual, combinaciones, left[i][0], left[i][1])
+        lado_der = obtener_emd_sistema(sistema_original, estado_actual, combinaciones, right[j][0], right[j][1])
+        if lado_izq < lado_der :
+            result.append(left[i])
+            i += 1
+        else:
+            result.append(right[j])
+            j += 1
+
+    # Agregar los elementos restantes, si los hay
+    result.extend(left[i:])
+    result.extend(right[j:])
+
+    return result
+
+def obtener_emd_sistema(sistema_original: dict, estado_actual: str, combinaciones: list, combinacion_presente: tuple, combinacion_futuro: tuple):
+    distribucion_original = sistema_original[estado_actual]
+    estado_particion_1 = ''
+    estado_particion_2 = ''
+    particion_1 = distribucion_sistema_partido(sistema_original, combinacion_presente, combinacion_futuro)
+    opuesto_futuro = opposite_index_select(combinaciones, combinaciones.index(combinacion_presente) )
+    opuesto_actual = opposite_index_select(combinaciones, combinaciones.index(combinacion_futuro))
+    particion_2 = distribucion_sistema_partido(sistema_original, opuesto_futuro, opuesto_actual)
+    if 'E' in particion_1.keys():
+        estado_particion_1 = 'E'
+        estado_particion_2 = indice_estado_actual(estado_actual, opposite_index_select(combinaciones, combinaciones.index(combinacion_futuro)))
+    if 'E' in particion_2.keys():
+        estado_particion_1 = indice_estado_actual(estado_actual, combinacion_futuro)
+        estado_particion_2 = 'E'
+    if 'E' not in particion_1.keys() and 'E' not in particion_2.keys():
+        estado_particion_1 = indice_estado_actual(estado_actual, combinacion_futuro)
+        estado_particion_2 = indice_estado_actual(estado_actual, opposite_index_select(combinaciones, combinaciones.index(combinacion_futuro)))
+    distribucion_particion_1 = particion_1[estado_particion_1]
+    distribucion_particion_2 = particion_2[estado_particion_2]
+    distribucion_combinada = np.kron(distribucion_particion_1, distribucion_particion_2)
+
+    distancia = wasserstein_distance(np.array(distribucion_original), distribucion_combinada)
+
+    return distancia
+
+def obtener_combinaciones_presente_futuro():
+    combinaciones_totales = []
+    # Definir restricciones para cada posición
+    restricciones = [[0, -1], [1, -1], [2, -1]]  # Puedes agregar más restricciones según sea necesario
+
+    # Generar todas las combinaciones posibles según las restricciones
+    todas_combinaciones = []
+    generar_combinaciones(restricciones, [], todas_combinaciones)
+
+    for futuro in todas_combinaciones:
+        for presente in todas_combinaciones:
+            if not (futuro == (0,1,2) and presente == (0,1,2)) and not (futuro == (-1,-1,-1) and presente == (0,1,2)) and not (futuro == (0,1,2) and presente == (-1,-1,-1)) and not (futuro == (-1,-1,-1) and presente == (-1,-1,-1)):
+                combinaciones_totales.append((presente, futuro))
+    return combinaciones_totales
+combinaciones = []
+generar_combinaciones([[0, -1], [1, -1], [2, -1]], [], combinaciones)
+min_emd = merge_sort_select_min(obtener_combinaciones_presente_futuro(), diccionarioProb, '000', combinaciones)
+
+
+def convertir_solucion_letras(solucion: tuple):
+    solucion_letras = []
+    for i in range(len(solucion)):
+        if solucion[i] == -1:
+            if i == 0:
+                solucion_letras.append('A')
+            if i == 1:
+                solucion_letras.append('B')
+            if i == 2:
+                solucion_letras.append('C')
+    return solucion_letras
+
+print(min_emd[0])
+print(f'Particion 1: {convertir_solucion_letras(min_emd[0][0])} y {convertir_solucion_letras(min_emd[0][1])}')
+
+
 
 
 
