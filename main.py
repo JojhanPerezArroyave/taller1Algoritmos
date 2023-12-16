@@ -1,7 +1,5 @@
 import tabulate as tb
 import numpy as np
-import pyphi
-import itertools
 from scipy.stats import wasserstein_distance
 import string
 
@@ -485,38 +483,4 @@ def convertir_solucion_letras(solucion: tuple):
     return solucion_letras
 
 print(min_emd[0])
-print(f'Particion 1: {convertir_solucion_letras(min_emd[0][0])} y {convertir_solucion_letras(min_emd[0][1])}')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
+print(f'Particion 1: {convertir_solucion_letras(min_emd[0][0])} y {convertir_solucion_letras(min_emd[0][1])}') 
