@@ -5,6 +5,7 @@ import string
 import asyncio
 import os
 import curses
+import time
 
 def listar_archivos_txt(ruta):
     archivos_txt = [archivo for archivo in os.listdir(ruta) if archivo.endswith(".txt")]
@@ -602,7 +603,11 @@ async def main():
     #print(dist_partida)
     combinaciones = []
     generar_combinaciones([[0, -1], [1, -1], [2, -1]], [], combinaciones)
+    tiempo_inicial = time.time()
     min_emd = await merge_sort_select_min(obtener_combinaciones_presente_futuro(), diccionarioProb, '000', combinaciones)
+    tiempo_final = time.time()
+
+    print(f'Tiempo de ejecución: {tiempo_final - tiempo_inicial} segundos')
 
     print(min_emd[0])
     print(f'Particion 1: {convertir_solucion_letras(min_emd[0][0])} y {convertir_solucion_letras(min_emd[0][1])}') 
