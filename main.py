@@ -484,3 +484,4 @@ def convertir_solucion_letras(solucion: tuple):
 
 print(min_emd[0])
 print(f'Particion 1: {convertir_solucion_letras(min_emd[0][0])} y {convertir_solucion_letras(min_emd[0][1])}') 
+
