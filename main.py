@@ -3,14 +3,62 @@ import numpy as np
 from scipy.stats import wasserstein_distance
 import string
 import asyncio
+import os
+import curses
+
+def listar_archivos_txt(ruta):
+    archivos_txt = [archivo for archivo in os.listdir(ruta) if archivo.endswith(".txt")]
+    return archivos_txt
+
+def interfaz(stdscr):
+    curses.curs_set(0)  # Ocultar el cursor
+    stdscr.clear()
+
+    ruta_actual = os.getcwd() + "/canalesPrueba"
+    archivos_txt_disponibles = listar_archivos_txt(ruta_actual)
+
+    if not archivos_txt_disponibles:
+        stdscr.addstr(0, 0, "No hay archivos .txt en la carpeta actual.")
+        stdscr.refresh()
+        stdscr.getch()
+        return
+
+    opcion_seleccionada = 0
+
+    while True:
+        stdscr.clear()
+
+        for i, archivo in enumerate(archivos_txt_disponibles):
+            if i == opcion_seleccionada:
+                stdscr.addstr(i, 0, f"> {archivo}")
+            else:
+                stdscr.addstr(i, 0, f"  {archivo}")
+
+        stdscr.refresh()
+
+        tecla = stdscr.getch()
+
+        if tecla == curses.KEY_UP and opcion_seleccionada > 0:
+            opcion_seleccionada -= 1
+        elif tecla == curses.KEY_DOWN and opcion_seleccionada < len(archivos_txt_disponibles) - 1:
+            opcion_seleccionada += 1
+        elif tecla == ord('\n'):
+            archivo_seleccionado = archivos_txt_disponibles[opcion_seleccionada]
+            procesar_archivo(archivo_seleccionado)
+            break
 
 canales = {}
-with open('canales.txt', 'r') as archivo_txt:
-    for linea in archivo_txt:
-        partes = linea.strip().split()
-        if partes:
-            canal, valores = partes[0], partes[1:]
-            canales[canal] = valores
+def procesar_archivo(nombre_archivo):
+    with open("./canalesPrueba/" + nombre_archivo, 'r') as archivo_txt:
+        for linea in archivo_txt:
+            partes = linea.strip().split()
+            if partes:
+                canal, valores = partes[0], partes[1:]
+                canales[canal] = valores
+
+    # Haces lo que necesites con el diccionario 'canales'
+    print(f"Contenido del archivo {nombre_archivo} procesado:")
+    print(canales)
 
 """Devuelve una lista de los estados existentes en los canales de comunicación. Los estados se definen como los valores que toman los canales de comunicación en un instante de tiempo determinado.
 Los tiempos están definidos por cada posición de cada canal de comunicación. Por ejemplo, el estado 1 es 000 y el estado 2 es 101."""
@@ -527,6 +575,7 @@ def convertir_solucion_letras(solucion: tuple):
 
 async def main():
     #Impresión de las tablas
+    curses.wrapper(interfaz)
 
     varFrecuenciaEstados = frecuenciaEstados(canales, estadosExistentes(canales));
     varEstadosExistentes = estadosExistentes(canales)
