@@ -521,6 +521,8 @@ def convertir_solucion_letras(solucion: tuple):
                 solucion_letras.append('B')
             if i == 2:
                 solucion_letras.append('C')
+    if len(solucion_letras) == 0:
+        solucion_letras.append('Ø')
     return solucion_letras
 
 async def main():
