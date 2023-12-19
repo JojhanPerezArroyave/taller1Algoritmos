@@ -51,10 +51,10 @@ Calcula la distribución del sistema de partidos políticos a partir de probabil
 
 ## Uso
 
-1. Asegúrate de tener instalada la biblioteca `tabulate`:
+1. Asegúrate de tener instalados los paquetes instalados en requirements.txt:
 
     ```bash
-    pip install tabulate
+    pip install -r requirements.txt
     ```
 
 2. Ejecuta el archivo `main.py` para obtener los resultados del análisis de los canales de comunicación.
