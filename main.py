@@ -2,6 +2,7 @@ import tabulate as tb
 import numpy as np
 from scipy.stats import wasserstein_distance
 import string
+import asyncio
 
 canales = {}
 with open('canales.txt', 'r') as archivo_txt:
@@ -156,28 +157,6 @@ def frecuenciaEstadosAnteriores(canales: dict, estados: list) -> dict:
 
     return frecuencias
 
-#Impresión de las tablas
-
-varFrecuenciaEstados = frecuenciaEstados(canales, estadosExistentes(canales));
-varEstadosExistentes = estadosExistentes(canales)
-
-tableEstadoCanalF = generateTable1(probabilidades(varFrecuenciaEstados, frecuenciaEstadosSiguientes(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
-print(tableEstadoCanalF)
-#print(probabilidades(varFrecuenciaEstados, frecuenciaEstadosSiguientes(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
-
-tableEstadoEstadoF = generateTable1(probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes)), varEstadosExistentes)
-print(tableEstadoEstadoF)
-# print(probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes)), varEstadosExistentes)
-
-diccionarioProb = probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes))
-diccionarioProbCanal = probabilidades(varFrecuenciaEstados, frecuenciaEstadosSiguientes(canales, varEstadosExistentes))
-# print(diccionarioProb)
-# tableEstadoCanalP = generateTable1(probabilidades(varFrecuenciaEstados, frecuenciaEstadosAnteriores(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
-# print(tableEstadoCanalP)
-
-# tableEstadoEstadoP = generateTable1(probabilidades(varFrecuenciaEstados, probabilidadesEstadosAnteriores(canales, varEstadosExistentes)), varEstadosExistentes)
-# print(tableEstadoEstadoP) 
-
 
 """Dado el diccionario de probabilidades de estados siguientes, retorna las probabilidades de un estado dado"""
 def distribucionEstado(probabilidades: dict, estado: str) -> list:
@@ -310,11 +289,6 @@ def distribucion_vacia(canales: list):
     res['E'] = [1/(2**existentes) for i in range(2**existentes)]
     return res
 
-"""El primer array sirve para la marginalización de columnas, el segundo para la marginalización de filas"""""
-dist_partida = distribucion_sistema_partido(diccionarioProb, [0, 1, -1], [0, -1, -1])
-
-print(dist_partida)
-
 
 def generar_combinaciones(posiciones_restantes, combinacion_actual, todas_combinaciones):
     if not posiciones_restantes:
@@ -387,7 +361,7 @@ def opposite_index_select(lst, index):
         # Handle the case when the opposite index is out of range
         return None
 
-def merge_sort_select_min(arr, sistema_original, estado_actual, combinaciones):
+async def merge_sort_select_min(arr, sistema_original, estado_actual, combinaciones):
     if len(arr) <= 1:
         return arr
 
@@ -397,22 +371,22 @@ def merge_sort_select_min(arr, sistema_original, estado_actual, combinaciones):
     right_half = arr[mid:]
 
     # Llamada recursiva para ordenar y seleccionar el mínimo en las mitades
-    left_half = merge_sort_select_min(left_half, sistema_original, estado_actual, combinaciones)
-    right_half = merge_sort_select_min(right_half, sistema_original, estado_actual, combinaciones)
+    left_half = await merge_sort_select_min(left_half, sistema_original, estado_actual, combinaciones)
+    right_half = await merge_sort_select_min(right_half, sistema_original, estado_actual, combinaciones)
 
     # Fusionar las mitades ordenadas
-    result = merge(left_half, right_half, sistema_original, estado_actual, combinaciones)
+    result = await merge(left_half, right_half, sistema_original, estado_actual, combinaciones)
 
     return result
 
-def merge(left, right, sistema_original, estado_actual, combinaciones):
+async def merge(left, right, sistema_original, estado_actual, combinaciones):
     result = []
     i = j = 0
 
     while i < len(left) and j < len(right):
         # Comparar elementos y seleccionar el menor
-        lado_izq = obtener_emd_sistema(sistema_original, estado_actual, combinaciones, left[i][0], left[i][1])
-        lado_der = obtener_emd_sistema(sistema_original, estado_actual, combinaciones, right[j][0], right[j][1])
+        lado_izq = await obtener_emd_sistema(sistema_original, estado_actual, combinaciones, left[i][0], left[i][1])
+        lado_der = await obtener_emd_sistema(sistema_original, estado_actual, combinaciones, right[j][0], right[j][1])
         if lado_izq < lado_der :
             result.append(left[i])
             i += 1
@@ -426,7 +400,7 @@ def merge(left, right, sistema_original, estado_actual, combinaciones):
 
     return result
 
-def obtener_emd_sistema(sistema_original: dict, estado_actual: str, combinaciones: list, combinacion_presente: tuple, combinacion_futuro: tuple):
+async def obtener_emd_sistema(sistema_original: dict, estado_actual: str, combinaciones: list, combinacion_presente: tuple, combinacion_futuro: tuple):
     distribucion_original = sistema_original[estado_actual]
     estado_particion_1 = ''
     estado_particion_2 = ''
@@ -465,9 +439,6 @@ def obtener_combinaciones_presente_futuro():
             if not (futuro == (0,1,2) and presente == (0,1,2)) and not (futuro == (-1,-1,-1) and presente == (0,1,2)) and not (futuro == (0,1,2) and presente == (-1,-1,-1)) and not (futuro == (-1,-1,-1) and presente == (-1,-1,-1)):
                 combinaciones_totales.append((presente, futuro))
     return combinaciones_totales
-combinaciones = []
-generar_combinaciones([[0, -1], [1, -1], [2, -1]], [], combinaciones)
-min_emd = merge_sort_select_min(obtener_combinaciones_presente_futuro(), diccionarioProb, '000', combinaciones)
 
 
 def convertir_solucion_letras(solucion: tuple):
@@ -482,6 +453,38 @@ def convertir_solucion_letras(solucion: tuple):
                 solucion_letras.append('C')
     return solucion_letras
 
-print(min_emd[0])
-print(f'Particion 1: {convertir_solucion_letras(min_emd[0][0])} y {convertir_solucion_letras(min_emd[0][1])}') 
+async def main():
+    #Impresión de las tablas
+
+    varFrecuenciaEstados = frecuenciaEstados(canales, estadosExistentes(canales));
+    varEstadosExistentes = estadosExistentes(canales)
+
+    tableEstadoCanalF = generateTable1(probabilidades(varFrecuenciaEstados, frecuenciaEstadosSiguientes(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
+    print(tableEstadoCanalF)
+    #print(probabilidades(varFrecuenciaEstados, frecuenciaEstadosSiguientes(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
+
+    tableEstadoEstadoF = generateTable1(probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes)), varEstadosExistentes)
+    print(tableEstadoEstadoF)
+    # print(probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes)), varEstadosExistentes)
+
+    diccionarioProb = probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes))
+    #diccionarioProbCanal = probabilidades(varFrecuenciaEstados, frecuenciaEstadosSiguientes(canales, varEstadosExistentes))
+    # print(diccionarioProb)
+    # tableEstadoCanalP = generateTable1(probabilidades(varFrecuenciaEstados, frecuenciaEstadosAnteriores(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
+    # print(tableEstadoCanalP)
+
+    # tableEstadoEstadoP = generateTable1(probabilidades(varFrecuenciaEstados, probabilidadesEstadosAnteriores(canales, varEstadosExistentes)), varEstadosExistentes)
+    # print(tableEstadoEstadoP) 
+    """El primer array sirve para la marginalización de columnas, el segundo para la marginalización de filas"""""
+    #dist_partida = distribucion_sistema_partido(diccionarioProb, [0, 1, -1], [0, -1, -1])
+
+    #print(dist_partida)
+    combinaciones = []
+    generar_combinaciones([[0, -1], [1, -1], [2, -1]], [], combinaciones)
+    min_emd = await merge_sort_select_min(obtener_combinaciones_presente_futuro(), diccionarioProb, '000', combinaciones)
+
+    print(min_emd[0])
+    print(f'Particion 1: {convertir_solucion_letras(min_emd[0][0])} y {convertir_solucion_letras(min_emd[0][1])}') 
+
+asyncio.run(main())
 
