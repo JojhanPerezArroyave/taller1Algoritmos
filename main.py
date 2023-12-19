@@ -26,8 +26,6 @@ def estadosExistentes(canales: dict) -> list:
 
     return estados_ordenados
 
-
-
 """Devuelve un diccionario el cual por cada estado existente en la lista de estados, devuelve cuántas veces se encuentra este en los canales de comunicación, pero si el estado se encuentra al final, este no se cuenta."""
 def frecuenciaEstados(canales: dict, estados: list) -> dict:
     num_canales = len(canales)
@@ -40,8 +38,6 @@ def frecuenciaEstados(canales: dict, estados: list) -> dict:
                 frecuencias[estado] += 1
 
     return frecuencias
-
-
 
 """Método que devuelve un diccionario en donde la clave es cada estado de la lista de estados y su valor es un arreglo que tiene tantas posiciones como canales, el valor de la posicion 0 del arreeglo será las veces que despues de ese estado, hay un 1 en el canal A"""
 def frecuenciaEstadosSiguientes(canales: dict, estados: list) -> dict:
@@ -76,7 +72,6 @@ def probabilidades(frecuenciaEstados: dict, frecuenciaEstadosSiguientes: dict) -
         for i, frecuencia in enumerate(frecuenciaEstadosSiguientes[estado]):
             probabilidades[estado][i] = frecuencia / frecuenciaEstados[estado]
     return probabilidades
-
 
 """ Método que devuelve un diccionario en donde la clave es cada estado de la lista de estados y su valor es un arreglo que tiene tantas posiciones como estados existentes, el valor de la posicion 0 del arreglo será las veces que despues del primer estado esta el primer estado, la posición 1 es las veces que despues del primer estado esta el segundo estado  """
 def probabilidadesEstadosSiguientes(canales: dict, estados: list) -> dict:
@@ -157,7 +152,6 @@ def frecuenciaEstadosAnteriores(canales: dict, estados: list) -> dict:
 
     return frecuencias
 
-
 """Dado el diccionario de probabilidades de estados siguientes, retorna las probabilidades de un estado dado"""
 def distribucionEstado(probabilidades: dict, estado: str) -> list:
     return probabilidades[estado]
@@ -180,7 +174,6 @@ def distribucionCanal(probabilidades: dict, canal: int) -> dict:
     for estado in probabilidades:
         distribucion[estado] = [probabilidades[estado][canal], 1 - probabilidades[estado][canal]]
     return distribucion
-
 
 """Dado el diccionario de distribuciones de un canal dado un estado actual, conviertelo en una matriz"""
 def matrizDistribucionCanal(distribucion: dict) -> list:
@@ -254,7 +247,7 @@ def trasponerMatrizDictKeys(diccionario: dict, keys: list) -> dict:
     return {key: matrizTranspuesta[i].tolist() for i, key in enumerate(keys)}
 
 """
-    Calcula la distribución del sistema de partidos políticos a partir de probabilidades de transición.
+    Calcula la distribución del sistema a partir de probabilidades de transición.
 
     Parameters:
         - probabilidades (dict): Un diccionario con claves que representan estados y valores que son listas de probabilidades de transición.
@@ -262,7 +255,7 @@ def trasponerMatrizDictKeys(diccionario: dict, keys: list) -> dict:
         - canales_actuales (list): Una lista de índices de canales que se eliminarán al calcular la distribución del sistema actual.
 
     Returns:
-        dict: Un diccionario que representa la distribución del sistema de partidos políticos,
+        dict: Un diccionario que representa la distribución del sistema,
               donde las claves son estados reducidos y los valores son listas de probabilidades correspondientes.
 """
 def distribucion_sistema_partido(probabilidades: dict, canales_futuros: list, canales_actuales: list) -> dict:
@@ -280,6 +273,17 @@ def distribucion_sistema_partido(probabilidades: dict, canales_futuros: list, ca
             res = marginalizar_fila(res, canales_actuales[i])
     return res
 
+"""
+    Calcula la distribución vacía del sistema.
+
+    Parameters:
+        - canales (list): Una lista de índices de canales, donde se contarán los canales existentes para determinar la distribución vacía.
+
+    Returns:
+        dict: Un diccionario que representa la distribución vacía del sistema.
+              La clave 'E' representa el estado vacío, y el valor es una lista de probabilidades uniformes.
+
+"""
 def distribucion_vacia(canales: list):
     existentes = 0
     for element in canales:
@@ -289,7 +293,20 @@ def distribucion_vacia(canales: list):
     res['E'] = [1/(2**existentes) for i in range(2**existentes)]
     return res
 
+"""
+    Genera recursivamente todas las combinaciones posibles a partir de las posiciones restantes.
 
+    Parameters:
+        - posiciones_restantes (list): Una lista de listas, donde cada sublista representa los valores posibles para una posición.
+        - combinacion_actual (list): Una lista que representa la combinación actual en construcción.
+        - todas_combinaciones (list): Una lista que se actualizará con todas las combinaciones generadas.
+
+    Returns:
+        None: La función no devuelve un valor explícito, pero actualiza la lista `todas_combinaciones` con las combinaciones generadas.
+
+    Note:
+        Esta función utiliza la recursividad para generar todas las combinaciones posibles a partir de las posiciones restantes.
+"""
 def generar_combinaciones(posiciones_restantes, combinacion_actual, todas_combinaciones):
     if not posiciones_restantes:
         todas_combinaciones.append(tuple(combinacion_actual))
@@ -299,48 +316,19 @@ def generar_combinaciones(posiciones_restantes, combinacion_actual, todas_combin
     for valor in posiciones_restantes[0]:
         generar_combinaciones(posiciones_restantes[1:], combinacion_actual + [valor], todas_combinaciones)
 
-def particiones_sistema(sistema_original: dict, estado_actual: str) -> float:
-    distribucion_original = sistema_original[estado_actual]
+"""
+    Calcula y devuelve el estado actual correspondiente a los canales especificados.
 
-    # Definir restricciones para cada posición
-    restricciones = [[0, -1], [1, -1], [2, -1]]  # Puedes agregar más restricciones según sea necesario
+    Parameters:
+        - estado_actual (str): Una cadena que representa el estado actual completo.
+        - canales (list): Una lista de índices de canales, donde se seleccionarán los canales relevantes para el estado.
 
-    # Generar todas las combinaciones posibles según las restricciones
-    todas_combinaciones = []
-    generar_combinaciones(restricciones, [], todas_combinaciones)
+    Returns:
+        str: Una cadena que representa el estado actual correspondiente a los canales especificados.
 
-    min_emd = float('inf')
-    min_partition = None
-
-    for i in range(len(todas_combinaciones)):
-        for j in range(len(todas_combinaciones)):
-            if not (todas_combinaciones[i] == (0,1,2) and todas_combinaciones[j] == (0,1,2)) and not (todas_combinaciones[i] == (-1,-1,-1) and todas_combinaciones[j] == (0,1,2)) and not (todas_combinaciones[i] == (0,1,2) and todas_combinaciones[j] == (-1,-1,-1)):
-                estado_particion_1 = ''
-                estado_particion_2 = ''
-                particion_1 = distribucion_sistema_partido(sistema_original, todas_combinaciones[i], todas_combinaciones[j])
-                opuesto_futuro = opposite_index_select(todas_combinaciones, i)
-                opuesto_actual = opposite_index_select(todas_combinaciones, j)
-                particion_2 = distribucion_sistema_partido(sistema_original, opuesto_futuro, opuesto_actual)
-                if 'E' in particion_1.keys():
-                    estado_particion_1 = 'E'
-                    estado_particion_2 = indice_estado_actual(estado_actual, opposite_index_select(todas_combinaciones, j))
-                if 'E' in particion_2.keys():
-                    estado_particion_1 = indice_estado_actual(estado_actual, todas_combinaciones[j])
-                    estado_particion_2 = 'E'
-                if 'E' not in particion_1.keys() and 'E' not in particion_2.keys():
-                    estado_particion_1 = indice_estado_actual(estado_actual, todas_combinaciones[j])
-                    estado_particion_2 = indice_estado_actual(estado_actual, opposite_index_select(todas_combinaciones, j))
-                distribucion_particion_1 = particion_1[estado_particion_1]
-                distribucion_particion_2 = particion_2[estado_particion_2]
-                distribucion_combinada = np.kron(distribucion_particion_1, distribucion_particion_2)
-
-                distancia = wasserstein_distance(np.array(distribucion_original), distribucion_combinada)
-
-                if distancia < min_emd:
-                    min_emd = distancia
-                    min_partition = (distribucion_particion_1, distribucion_particion_2)
-    return min_partition
-
+    Note:
+        Esta función construye un nuevo estado excluyendo las posiciones indicadas por los canales con valor -1.
+"""
 def indice_estado_actual(estado_actual: str, canales: list):
     estado = ''
     for i in range(len(canales)):
@@ -348,19 +336,47 @@ def indice_estado_actual(estado_actual: str, canales: list):
             estado += estado_actual[i]
     return estado
             
+"""
+    Selecciona y devuelve el elemento en la posición opuesta en una lista en relación con el índice dado.
 
+    Parameters:
+        - lst (list): Una lista de elementos.
+        - index (int): El índice para el cual se seleccionará el elemento opuesto.
+
+    Returns:
+        object or None: El elemento en la posición opuesta con respecto al índice dado.
+                        Devuelve None si el índice opuesto está fuera del rango de la lista.
+
+    Note:
+        Esta función calcula el índice opuesto y verifica si está dentro del rango de la lista antes de devolver el elemento correspondiente.
+"""
 def opposite_index_select(lst, index):
-    # Calculate the opposite index
+    # Calcular el indice opuesto
     opposite_index = len(lst) - 1 - index
     
-    # Check if the opposite index is within the valid range
+    # Verificar que el indice opuesto esté dentro del rango
     if 0 <= opposite_index < len(lst):
-        # Return the element at the opposite index
+        # Devolver el elemento en el indice opuesto
         return lst[opposite_index]
     else:
-        # Handle the case when the opposite index is out of range
+        # Devolver None si el indice opuesto está fuera del rango
         return None
 
+"""
+    Implementa el algoritmo de ordenación merge sort de manera asíncrona y selecciona el mínimo valor.
+
+    Parameters:
+        - arr (list): Una lista de elementos que se ordenarán y de la cual se seleccionará el mínimo.
+        - sistema_original: [Describir el tipo]: El sistema original al que se asocian los elementos en la lista.
+        - estado_actual: [Describir el tipo]: El estado actual utilizado en la selección del mínimo.
+        - combinaciones: [Describir el tipo]: Una estructura de datos para almacenar combinaciones.
+
+    Returns:
+        list: Una lista ordenada que resulta de aplicar merge sort al arreglo de entrada.
+
+    Note:
+        Esta función utiliza el algoritmo merge sort de manera asíncrona para ordenar la lista y seleccionar el mínimo valor.
+"""
 async def merge_sort_select_min(arr, sistema_original, estado_actual, combinaciones):
     if len(arr) <= 1:
         return arr
@@ -379,6 +395,22 @@ async def merge_sort_select_min(arr, sistema_original, estado_actual, combinacio
 
     return result
 
+"""
+    Fusiona dos listas ordenadas de manera asíncrona y selecciona el menor valor de acuerdo con ciertos criterios.
+
+    Parameters:
+        - left (list): Una lista ordenada.
+        - right (list): Otra lista ordenada.
+        - sistema_original: [Describir el tipo]: El sistema original al que se asocian los elementos en las listas.
+        - estado_actual: [Describir el tipo]: El estado actual utilizado en la selección del menor valor.
+        - combinaciones: [Describir el tipo]: Una estructura de datos para almacenar combinaciones.
+
+    Returns:
+        list: Una lista fusionada y ordenada que resulta de combinar las listas de entrada.
+
+    Note:
+        Esta función fusiona dos listas ordenadas de manera asíncrona y selecciona el menor valor utilizando ciertos criterios.
+"""
 async def merge(left, right, sistema_original, estado_actual, combinaciones):
     result = []
     i = j = 0
@@ -400,6 +432,23 @@ async def merge(left, right, sistema_original, estado_actual, combinaciones):
 
     return result
 
+"""
+    Calcula la distancia de Earth Mover's (EMD) entre dos distribuciones de probabilidad en el contexto de un sistema político.
+
+    Parameters:
+        - sistema_original (dict): Un diccionario que representa el sistema político original.
+        - estado_actual (str): El estado actual del sistema político.
+        - combinaciones (list): Una lista de combinaciones de canales relevantes para el sistema.
+        - combinacion_presente (tuple): Una tupla que representa la combinación presente.
+        - combinacion_futuro (tuple): Una tupla que representa la combinación futura.
+
+    Returns:
+        float: La distancia de Earth Mover's entre las distribuciones de probabilidad asociadas con las combinaciones dadas.
+
+    Note:
+        Esta función utiliza el algoritmo de distancia de Earth Mover's para calcular la diferencia entre las distribuciones de probabilidad
+        en dos particiones del sistema político, considerando combinaciones presentes y futuras.
+"""
 async def obtener_emd_sistema(sistema_original: dict, estado_actual: str, combinaciones: list, combinacion_presente: tuple, combinacion_futuro: tuple):
     distribucion_original = sistema_original[estado_actual]
     estado_particion_1 = ''
@@ -425,6 +474,16 @@ async def obtener_emd_sistema(sistema_original: dict, estado_actual: str, combin
 
     return distancia
 
+"""
+    Genera y devuelve todas las combinaciones posibles de estados presente y futuro, considerando restricciones específicas.
+
+    Returns:
+        list: Una lista de tuplas que representan todas las combinaciones permitidas de estados presente y futuro.
+
+    Note:
+        Esta función utiliza restricciones específicas para generar combinaciones posibles de estados presente y futuro,
+        excluyendo combinaciones específicas para evitar duplicados o combinaciones que no cumplen con ciertos criterios.
+"""
 def obtener_combinaciones_presente_futuro():
     combinaciones_totales = []
     # Definir restricciones para cada posición
@@ -440,7 +499,18 @@ def obtener_combinaciones_presente_futuro():
                 combinaciones_totales.append((presente, futuro))
     return combinaciones_totales
 
+"""
+    Convierte una solución representada como una tupla de índices en una lista de letras correspondientes.
 
+    Parameters:
+        - solucion (tuple): Una tupla de índices que representa una solución.
+
+    Returns:
+        list: Una lista de letras correspondientes a los índices de la solución. Los elementos en posiciones no especificadas son excluidos.
+
+    Note:
+        Esta función asigna letras a los índices específicos en la solución, excluyendo aquellos que están marcados con el valor -1.
+"""
 def convertir_solucion_letras(solucion: tuple):
     solucion_letras = []
     for i in range(len(solucion)):
