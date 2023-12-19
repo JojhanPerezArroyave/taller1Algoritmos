@@ -485,6 +485,7 @@ async def main():
 
     print(min_emd[0])
     print(f'Particion 1: {convertir_solucion_letras(min_emd[0][0])} y {convertir_solucion_letras(min_emd[0][1])}') 
+    print(f'Particion 2: {convertir_solucion_letras(opposite_index_select(combinaciones, combinaciones.index(min_emd[0][0])))} y {convertir_solucion_letras(opposite_index_select(combinaciones, combinaciones.index(min_emd[0][1])))}') 
 
 asyncio.run(main())
 
