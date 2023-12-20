@@ -156,28 +156,6 @@ def frecuenciaEstadosAnteriores(canales: dict, estados: list) -> dict:
 
     return frecuencias
 
-#Impresión de las tablas
-
-varFrecuenciaEstados = frecuenciaEstados(canales, estadosExistentes(canales));
-varEstadosExistentes = estadosExistentes(canales)
-
-tableEstadoCanalF = generateTable1(probabilidades(varFrecuenciaEstados, frecuenciaEstadosSiguientes(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
-print(tableEstadoCanalF)
-#print(probabilidades(varFrecuenciaEstados, frecuenciaEstadosSiguientes(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
-
-tableEstadoEstadoF = generateTable1(probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes)), varEstadosExistentes)
-print(tableEstadoEstadoF)
-# print(probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes)), varEstadosExistentes)
-
-diccionarioProb = probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes))
-diccionarioProbCanal = probabilidades(varFrecuenciaEstados, frecuenciaEstadosSiguientes(canales, varEstadosExistentes))
-# print(diccionarioProb)
-# tableEstadoCanalP = generateTable1(probabilidades(varFrecuenciaEstados, frecuenciaEstadosAnteriores(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
-# print(tableEstadoCanalP)
-
-# tableEstadoEstadoP = generateTable1(probabilidades(varFrecuenciaEstados, probabilidadesEstadosAnteriores(canales, varEstadosExistentes)), varEstadosExistentes)
-# print(tableEstadoEstadoP) 
-
 
 """Dado el diccionario de probabilidades de estados siguientes, retorna las probabilidades de un estado dado"""
 def distribucionEstado(probabilidades: dict, estado: str) -> list:
@@ -310,10 +288,6 @@ def distribucion_vacia(canales: list):
     res['E'] = [1/(2**existentes) for i in range(2**existentes)]
     return res
 
-"""El primer array sirve para la marginalización de columnas, el segundo para la marginalización de filas"""""
-dist_partida = distribucion_sistema_partido(diccionarioProb, [0, 1, -1], [0, -1, -1])
-
-print(dist_partida)
 
 
 def generar_combinaciones(posiciones_restantes, combinacion_actual, todas_combinaciones):
@@ -465,9 +439,7 @@ def obtener_combinaciones_presente_futuro():
             if not (futuro == (0,1,2) and presente == (0,1,2)) and not (futuro == (-1,-1,-1) and presente == (0,1,2)) and not (futuro == (0,1,2) and presente == (-1,-1,-1)) and not (futuro == (-1,-1,-1) and presente == (-1,-1,-1)):
                 combinaciones_totales.append((presente, futuro))
     return combinaciones_totales
-combinaciones = []
-generar_combinaciones([[0, -1], [1, -1], [2, -1]], [], combinaciones)
-min_emd = merge_sort_select_min(obtener_combinaciones_presente_futuro(), diccionarioProb, '000', combinaciones)
+
 
 
 def convertir_solucion_letras(solucion: tuple):
@@ -482,6 +454,40 @@ def convertir_solucion_letras(solucion: tuple):
                 solucion_letras.append('C')
     return solucion_letras
 
-print(min_emd[0])
-print(f'Particion 1: {convertir_solucion_letras(min_emd[0][0])} y {convertir_solucion_letras(min_emd[0][1])}') 
+
+
+
+if __name__ == '__main__':
+
+    #Impresión de las tablas
+
+    varFrecuenciaEstados = frecuenciaEstados(canales, estadosExistentes(canales));
+    varEstadosExistentes = estadosExistentes(canales)
+
+    tableEstadoCanalF = generateTable1(probabilidades(varFrecuenciaEstados, frecuenciaEstadosSiguientes(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
+    print(tableEstadoCanalF)
+    #print(probabilidades(varFrecuenciaEstados, frecuenciaEstadosSiguientes(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
+
+    tableEstadoEstadoF = generateTable1(probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes)), varEstadosExistentes)
+    print(tableEstadoEstadoF)
+    # print(probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes)), varEstadosExistentes)
+
+    diccionarioProb = probabilidades(varFrecuenciaEstados, probabilidadesEstadosSiguientes(canales, varEstadosExistentes))
+    diccionarioProbCanal = probabilidades(varFrecuenciaEstados, frecuenciaEstadosSiguientes(canales, varEstadosExistentes))
+    # print(diccionarioProb)
+    # tableEstadoCanalP = generateTable1(probabilidades(varFrecuenciaEstados, frecuenciaEstadosAnteriores(canales, varEstadosExistentes)), [f'Canal {letter}' for letter in string.ascii_uppercase[:len(canales.values())]])
+    # print(tableEstadoCanalP)
+
+    # tableEstadoEstadoP = generateTable1(probabilidades(varFrecuenciaEstados, probabilidadesEstadosAnteriores(canales, varEstadosExistentes)), varEstadosExistentes)
+    # print(tableEstadoEstadoP)     
+
+    """El primer array sirve para la marginalización de columnas, el segundo para la marginalización de filas"""""
+    dist_partida = distribucion_sistema_partido(diccionarioProb, [0, 1, -1], [0, -1, -1])
+    print(dist_partida)
+
+    combinaciones = []
+    generar_combinaciones([[0, -1], [1, -1], [2, -1]], [], combinaciones)
+    min_emd = merge_sort_select_min(obtener_combinaciones_presente_futuro(), diccionarioProb, '000', combinaciones)
+    print(min_emd[0])
+    print(f'Particion 1: {convertir_solucion_letras(min_emd[0][0])} y {convertir_solucion_letras(min_emd[0][1])}') 
 
