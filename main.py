@@ -510,9 +510,10 @@ if __name__ == '__main__':
     combinaciones = []
     generar_combinaciones([[0, -1], [1, -1], [2, -1]], [], combinaciones)
     tiempo_inicial = time.time()
-    min_emd = particiones_sistema(diccionarioProb, '000')
+    min_emd = particiones_sistema(diccionarioProb, '001')
     tiempo_final = time.time()
     print(f"Tiempo de ejecución: {tiempo_final - tiempo_inicial}")
-    print(min_emd)
+    print(f'Particion 1: {convertir_solucion_letras(min_emd[0])}c y {convertir_solucion_letras(min_emd[1])}f')
+    print(f'Particion 2: {convertir_solucion_letras(opposite_index_select(combinaciones, combinaciones.index(min_emd[0])))}c y {convertir_solucion_letras(opposite_index_select(combinaciones, combinaciones.index(min_emd[1])))}f') 
  
 
