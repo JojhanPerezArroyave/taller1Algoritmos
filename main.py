@@ -489,5 +489,7 @@ if __name__ == '__main__':
     generar_combinaciones([[0, -1], [1, -1], [2, -1]], [], combinaciones)
     min_emd = merge_sort_select_min(obtener_combinaciones_presente_futuro(), diccionarioProb, '000', combinaciones)
     print(min_emd[0])
-    print(f'Particion 1: {convertir_solucion_letras(min_emd[0][0])} y {convertir_solucion_letras(min_emd[0][1])}') 
+    print(f'Particion 1: {convertir_solucion_letras(min_emd[0][0])}c y {convertir_solucion_letras(min_emd[0][1])}f')
+    print(f'Particion 2: {convertir_solucion_letras(opposite_index_select(combinaciones, combinaciones.index(min_emd[0][0])))}c y {convertir_solucion_letras(opposite_index_select(combinaciones, combinaciones.index(min_emd[0][1])))}f') 
+ 
 
