@@ -2,6 +2,8 @@ import tabulate as tb
 import numpy as np
 from scipy.stats import wasserstein_distance
 import string
+import concurrent.futures
+import time
 
 canales = {}
 with open('canales.txt', 'r') as archivo_txt:
@@ -299,6 +301,8 @@ def generar_combinaciones(posiciones_restantes, combinacion_actual, todas_combin
     for valor in posiciones_restantes[0]:
         generar_combinaciones(posiciones_restantes[1:], combinacion_actual + [valor], todas_combinaciones)
 
+import concurrent.futures
+
 def particiones_sistema(sistema_original: dict, estado_actual: str) -> float:
     distribucion_original = sistema_original[estado_actual]
 
@@ -312,34 +316,52 @@ def particiones_sistema(sistema_original: dict, estado_actual: str) -> float:
     min_emd = float('inf')
     min_partition = None
 
-    for i in range(len(todas_combinaciones)):
-        for j in range(len(todas_combinaciones)):
-            if not (todas_combinaciones[i] == (0,1,2) and todas_combinaciones[j] == (0,1,2)) and not (todas_combinaciones[i] == (-1,-1,-1) and todas_combinaciones[j] == (0,1,2)) and not (todas_combinaciones[i] == (0,1,2) and todas_combinaciones[j] == (-1,-1,-1)):
-                estado_particion_1 = ''
-                estado_particion_2 = ''
-                particion_1 = distribucion_sistema_partido(sistema_original, todas_combinaciones[i], todas_combinaciones[j])
-                opuesto_futuro = opposite_index_select(todas_combinaciones, i)
-                opuesto_actual = opposite_index_select(todas_combinaciones, j)
-                particion_2 = distribucion_sistema_partido(sistema_original, opuesto_futuro, opuesto_actual)
-                if 'E' in particion_1.keys():
-                    estado_particion_1 = 'E'
-                    estado_particion_2 = indice_estado_actual(estado_actual, opposite_index_select(todas_combinaciones, j))
-                if 'E' in particion_2.keys():
-                    estado_particion_1 = indice_estado_actual(estado_actual, todas_combinaciones[j])
-                    estado_particion_2 = 'E'
-                if 'E' not in particion_1.keys() and 'E' not in particion_2.keys():
-                    estado_particion_1 = indice_estado_actual(estado_actual, todas_combinaciones[j])
-                    estado_particion_2 = indice_estado_actual(estado_actual, opposite_index_select(todas_combinaciones, j))
-                distribucion_particion_1 = particion_1[estado_particion_1]
-                distribucion_particion_2 = particion_2[estado_particion_2]
-                distribucion_combinada = np.kron(distribucion_particion_1, distribucion_particion_2)
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        # Utilizar hilos para ejecutar conjunto_particiones_sistema de manera concurrente
+        futures = [executor.submit(conjunto_particiones_sistema, todas_combinaciones, i, sistema_original, estado_actual, distribucion_original, min_emd, min_partition) for i in range(len(todas_combinaciones))]
 
-                distancia = wasserstein_distance(np.array(distribucion_original), distribucion_combinada)
+        # Esperar a que todas las tareas se completen
+        concurrent.futures.wait(futures)
 
-                if distancia < min_emd:
-                    min_emd = distancia
-                    min_partition = (distribucion_particion_1, distribucion_particion_2)
+        # Obtener resultados de las tareas
+        for future in futures:
+            result = future.result()
+            if result and result[0] < min_emd:
+                min_emd, min_partition = result
+
     return min_partition
+
+# Resto del código sin cambios
+
+
+def conjunto_particiones_sistema(todas_combinaciones, i, sistema_original, estado_actual, distribucion_original, min_emd, min_partition) -> float:
+    for j in range(len(todas_combinaciones)):
+        if not (todas_combinaciones[i] == (0,1,2) and todas_combinaciones[j] == (0,1,2)) and not (todas_combinaciones[i] == (-1,-1,-1) and todas_combinaciones[j] == (0,1,2)) and not (todas_combinaciones[i] == (0,1,2) and todas_combinaciones[j] == (-1,-1,-1)) and not (todas_combinaciones[i] == (-1,-1,-1) and todas_combinaciones[j] == (-1,-1,-1)):
+            estado_particion_1 = ''
+            estado_particion_2 = ''
+            particion_1 = distribucion_sistema_partido(sistema_original, todas_combinaciones[i], todas_combinaciones[j])
+            opuesto_futuro = opposite_index_select(todas_combinaciones, i)
+            opuesto_actual = opposite_index_select(todas_combinaciones, j)
+            particion_2 = distribucion_sistema_partido(sistema_original, opuesto_futuro, opuesto_actual)
+            if 'E' in particion_1.keys():
+                estado_particion_1 = 'E'
+                estado_particion_2 = indice_estado_actual(estado_actual, opposite_index_select(todas_combinaciones, j))
+            if 'E' in particion_2.keys():
+                estado_particion_1 = indice_estado_actual(estado_actual, todas_combinaciones[j])
+                estado_particion_2 = 'E'
+            if 'E' not in particion_1.keys() and 'E' not in particion_2.keys():
+                estado_particion_1 = indice_estado_actual(estado_actual, todas_combinaciones[j])
+                estado_particion_2 = indice_estado_actual(estado_actual, opposite_index_select(todas_combinaciones, j))
+            distribucion_particion_1 = particion_1[estado_particion_1]
+            distribucion_particion_2 = particion_2[estado_particion_2]
+            distribucion_combinada = np.kron(distribucion_particion_1, distribucion_particion_2)
+
+            distancia = wasserstein_distance(np.array(distribucion_original), distribucion_combinada)
+
+            if distancia < min_emd:
+                min_emd = distancia
+                min_partition = (todas_combinaciones[i], todas_combinaciones[j])
+    return min_emd, min_partition
 
 def indice_estado_actual(estado_actual: str, canales: list):
     estado = ''
@@ -487,9 +509,10 @@ if __name__ == '__main__':
 
     combinaciones = []
     generar_combinaciones([[0, -1], [1, -1], [2, -1]], [], combinaciones)
-    min_emd = merge_sort_select_min(obtener_combinaciones_presente_futuro(), diccionarioProb, '000', combinaciones)
-    print(min_emd[0])
-    print(f'Particion 1: {convertir_solucion_letras(min_emd[0][0])}c y {convertir_solucion_letras(min_emd[0][1])}f')
-    print(f'Particion 2: {convertir_solucion_letras(opposite_index_select(combinaciones, combinaciones.index(min_emd[0][0])))}c y {convertir_solucion_letras(opposite_index_select(combinaciones, combinaciones.index(min_emd[0][1])))}f') 
+    tiempo_inicial = time.time()
+    min_emd = particiones_sistema(diccionarioProb, '000')
+    tiempo_final = time.time()
+    print(f"Tiempo de ejecución: {tiempo_final - tiempo_inicial}")
+    print(min_emd)
  
 
